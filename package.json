@@ -1,0 +1,15 @@
+{
+  "name": "growthmak-ledger",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @growthmak/public-tool",
+    "build": "npm run build -w @growthmak/public-tool",
+    "start": "npm run start -w @growthmak/public-tool",
+    "test": "npm run test -w @growthmak/core",
+    "lint": "npm run lint -w @growthmak/public-tool"
+  }
+}
