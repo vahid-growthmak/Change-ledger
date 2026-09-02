@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3457",
     "lint": "next lint",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
