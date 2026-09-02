@@ -1,16 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  createRequestSchema,
-  REQUEST_TYPES,
-  REQUEST_TYPE_LABELS,
-  type CreateRequestInput,
-} from '@growthmak/core';
-import { Button, FieldLabel, InlineError, PanelLabel, Select, TextArea, TextInput } from '@growthmak/ui';
+import { createRequestSchema, REQUEST_TYPES, REQUEST_TYPE_LABELS, type CreateRequestInput } from '@growthmak/core';
+import { Button } from './primitives';
+import { FieldLabel, InlineError, Select, TextArea, TextInput } from './fields';
 
 interface SubmitFormProps {
-  onSubmit: (input: CreateRequestInput) => void;
+  /** May throw (e.g. a failed Server Action) — the form stays filled in and shows the error inline. */
+  onSubmit: (input: CreateRequestInput) => void | Promise<void>;
 }
 
 const blank = { title: '', type: 'other', location: '', detail: '', link: '' };
@@ -19,11 +16,12 @@ export function SubmitForm({ onSubmit }: SubmitFormProps) {
   const [values, setValues] = useState(blank);
   const [error, setError] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [pending, setPending] = useState(false);
 
   const set = (field: keyof typeof blank) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setValues((v) => ({ ...v, [field]: e.target.value }));
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = createRequestSchema.safeParse(values);
     if (!parsed.success) {
@@ -31,9 +29,17 @@ export function SubmitForm({ onSubmit }: SubmitFormProps) {
       return;
     }
     setError(null);
-    onSubmit(parsed.data);
-    setValues(blank);
-    setMoreOpen(false);
+    setPending(true);
+    try {
+      await onSubmit(parsed.data);
+      // Only clear on success — a failed submit keeps the input, nothing is lost (Failure states).
+      setValues(blank);
+      setMoreOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save. Check your connection, then try again.');
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -101,7 +107,9 @@ export function SubmitForm({ onSubmit }: SubmitFormProps) {
           </>
         ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit">Log this request</Button>
+          <Button type="submit" disabled={pending}>
+            {pending ? 'Logging…' : 'Log this request'}
+          </Button>
           <Button type="button" variant="ghost" small onClick={() => setMoreOpen((o) => !o)}>
             {moreOpen ? 'Hide extra detail' : 'Add detail or a link'}
           </Button>

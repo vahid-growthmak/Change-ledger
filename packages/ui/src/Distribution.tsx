@@ -1,13 +1,5 @@
-'use client';
-
-import {
-  GROWTH_LAYERS,
-  GROWTH_LAYER_LABELS,
-  REQUEST_TYPES,
-  REQUEST_TYPE_LABELS,
-  type ChangeRequest,
-} from '@growthmak/core';
-import { PanelLabel } from '@growthmak/ui';
+import { GROWTH_LAYERS, GROWTH_LAYER_LABELS, REQUEST_TYPES, REQUEST_TYPE_LABELS, type ChangeRequest } from '@growthmak/core';
+import { PanelLabel } from './primitives';
 
 function BarBox({ title, rows }: { title: string; rows: { label: string; count: number }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.count));

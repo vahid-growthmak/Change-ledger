@@ -7,6 +7,7 @@ import {
   type ChangeRequest,
   type CreateRequestInput,
   type ProjectConfig,
+  type TriagePatch,
 } from '@growthmak/core';
 
 const STORAGE_KEY = 'growthmak-change-ledger-v1';
@@ -31,13 +32,6 @@ function load(): PersistedState {
   } catch {
     return emptyState;
   }
-}
-
-export interface TriagePatch {
-  scope?: ChangeRequest['scope'];
-  layer?: ChangeRequest['layer'];
-  hours?: ChangeRequest['hours'];
-  status?: ChangeRequest['status'];
 }
 
 export function useLedger() {

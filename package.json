@@ -9,6 +9,11 @@
     "dev": "npm run dev -w @growthmak/public-tool",
     "build": "npm run build -w @growthmak/public-tool",
     "start": "npm run start -w @growthmak/public-tool",
+    "dev:ledger": "npm run dev -w @growthmak/ledger",
+    "build:ledger": "npm run build -w @growthmak/ledger",
+    "start:ledger": "npm run start -w @growthmak/ledger",
+    "db:generate": "npm run db:generate -w @growthmak/db",
+    "db:migrate": "npm run db:migrate -w @growthmak/ledger",
     "test": "npm run test -w @growthmak/core",
     "lint": "npm run lint -w @growthmak/public-tool"
   }

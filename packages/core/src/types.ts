@@ -41,6 +41,14 @@ export interface ChangeRequest {
   updatedAt: string | null;
 }
 
+/** The four inline-editable triage fields (T1–T4), partial for a single-field update. */
+export interface TriagePatch {
+  scope?: ChangeRequest['scope'];
+  layer?: ChangeRequest['layer'];
+  hours?: ChangeRequest['hours'];
+  status?: ChangeRequest['status'];
+}
+
 export const REQUEST_TYPE_LABELS: Record<RequestType, string> = {
   bug: 'Bug',
   design: 'Design change',

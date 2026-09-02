@@ -9,6 +9,9 @@
     "./tokens.css": "./src/tokens.css",
     "./tailwind-preset": "./tailwind-preset.js"
   },
+  "dependencies": {
+    "@growthmak/core": "*"
+  },
   "peerDependencies": {
     "react": "^19.0.0"
   },

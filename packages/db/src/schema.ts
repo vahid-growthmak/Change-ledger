@@ -1,6 +1,6 @@
 /**
  * Postgres schema for the Client Ledger (Phase 2, apps/ledger).
- * Four tables. Money is integer minor units — never float.
+ * Money is integer minor units — never float.
  * Not used by the public tool, which persists to the browser only.
  */
 import {
@@ -46,9 +46,70 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').unique().notNull(),
   name: text('name'),
-  role: userRole('role').notNull(),
+  // Auth.js's Drizzle adapter manages these two on the same table it uses
+  // for identity — image is unused by the app but part of the adapter's
+  // expected user shape.
+  emailVerified: timestamp('email_verified', { withTimezone: true }),
+  image: text('image'),
+  // Assigned once, in the linkAccount event: Google (growthmak.com domain)
+  // → team, magic link → client. Never client-decided (A4).
+  role: userRole('role').notNull().default('client'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
+
+// --- Auth.js adapter tables (@auth/drizzle-adapter's expected shape) ---
+// Session strategy is 'jwt', so `sessions` is never actually read from —
+// the adapter interface still expects the table to exist.
+
+export const accounts = pgTable(
+  'accounts',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('provider_account_id').notNull(),
+    // snake_case JS property names, not a style slip: @auth/drizzle-adapter's
+    // linkAccount() passes an AdapterAccount object straight into
+    // `.values(data)`, and Auth.js's AdapterAccount type uses these OAuth-spec
+    // field names verbatim — the Drizzle column key has to match exactly for
+    // the insert to land the values instead of silently dropping them.
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    refresh_token: text('refresh_token'),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    access_token: text('access_token'),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    expires_at: integer('expires_at'),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    token_type: text('token_type'),
+    scope: text('scope'),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    id_token: text('id_token'),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    session_state: text('session_state'),
+  },
+  (t) => [primaryKey({ columns: [t.provider, t.providerAccountId] })],
+);
+
+export const sessions = pgTable('sessions', {
+  sessionToken: text('session_token').primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { withTimezone: true }).notNull(),
+});
+
+/** Magic-link tokens (A1, A6): 15-minute expiry and single-use are enforced by auth config, not here. */
+export const verificationTokens = pgTable(
+  'verification_tokens',
+  {
+    identifier: text('identifier').notNull(),
+    token: text('token').notNull(),
+    expires: timestamp('expires', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
+);
 
 export const requests = pgTable(
   'requests',

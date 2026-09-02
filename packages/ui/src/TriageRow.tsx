@@ -9,16 +9,16 @@ import {
   SCOPE_VERDICTS,
   STATUS_LABELS,
   type ChangeRequest,
+  type TriagePatch,
 } from '@growthmak/core';
-import { FieldLabel, InlineSelect } from '@growthmak/ui';
-import type { TriagePatch } from '@/lib/store';
+import { FieldLabel, InlineSelect } from './fields';
 
 interface TriageRowProps {
   request: ChangeRequest;
   onTriage: (patch: TriagePatch) => void;
 }
 
-/** Inline triage: scope, layer, hours, status (T1–T5). Growthmak view only. */
+/** Inline triage: scope, layer, hours, status (T1–T5). Team view only. */
 export function TriageRow({ request, onTriage }: TriageRowProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
