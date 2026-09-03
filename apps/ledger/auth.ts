@@ -80,7 +80,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // verification tokens and for persisting Google-linked accounts.
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   providers,
-  pages: { signIn: '/login' },
+  pages: { signIn: '/login', verifyRequest: '/login/check-email' },
+  // In production Auth.js refuses to infer its own origin from the Host
+  // header unless told to, and every sign-in fails with UntrustedHost.
+  // Set AUTH_URL to the canonical origin (https://ledger.growthmak.com) and
+  // that is used instead; trustHost covers the platform-provided host on
+  // Vercel and local production runs, where the host is not attacker-set.
+  trustHost: true,
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {

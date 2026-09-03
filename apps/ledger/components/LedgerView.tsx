@@ -23,6 +23,7 @@ import {
 import {
   Distribution,
   EmptyState,
+  type AttachmentMeta,
   FilterChip,
   Meter,
   MeterLegend,
@@ -44,17 +45,28 @@ type ListFilter = 'all' | 'pending' | 'beyond' | 'open';
 const toneFor = (scope: ChangeRequest['scope']): ScopeTone =>
   scope === 'in_scope' ? 'clear' : scope === 'beyond_scope' ? 'over' : scope === 'needs_quote' ? 'signal' : 'pending';
 
+/**
+ * What each role is allowed to see, decided on the server. A client payload
+ * carries counts only — no hours, no cost, no contracted line — so there is
+ * nothing commercial to find in the page source, not merely nothing on
+ * screen.
+ */
+export type LedgerReadout =
+  | { kind: 'team'; totals: LedgerTotals; contractedHours: number; currency: string }
+  | { kind: 'client'; requestCount: number; beyondCount: number };
+
 interface LedgerViewProps {
   projectId: string;
-  project: Omit<ProjectConfig, 'rateMinor'>;
+  /** Needed to build the authenticated attachment routes. */
+  slug: string;
+  project: Omit<ProjectConfig, 'rateMinor' | 'contractedHours' | 'currency'>;
   requests: ChangeRequest[];
-  totals: LedgerTotals;
+  readout: LedgerReadout;
   periodLabel: string | null;
   role: 'team' | 'client';
-  currency: string;
 }
 
-export function LedgerView({ projectId, project, requests, totals, periodLabel, role, currency }: LedgerViewProps) {
+export function LedgerView({ projectId, slug, project, requests, readout, periodLabel, role }: LedgerViewProps) {
   const [filter, setFilter] = useState<ListFilter>('all');
   const [typeFilter, setTypeFilter] = useState<'' | RequestType>('');
   const [search, setSearch] = useState('');
@@ -75,9 +87,24 @@ export function LedgerView({ projectId, project, requests, totals, periodLabel, 
     toastTimer.current = setTimeout(() => setToast(null), 2600);
   }
 
-  async function handleCreate(input: CreateRequestInput) {
-    await createRequest(projectId, input);
+  async function handleCreate(input: CreateRequestInput, attachments: AttachmentMeta[]) {
+    await createRequest(projectId, input, attachments);
     showToast('Logged');
+  }
+
+  /**
+   * Uploads through our own route rather than a presigned PUT straight to
+   * storage, so size and type are enforced server-side by code we control.
+   */
+  async function handleUpload(file: File): Promise<AttachmentMeta> {
+    const body = new FormData();
+    body.append('file', file);
+    const response = await fetch(`/${slug}/attachments`, { method: 'POST', body });
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(payload?.error ?? 'Could not attach that file.');
+    }
+    return (await response.json()) as AttachmentMeta;
   }
 
   function handleTriage(id: string, patch: TriagePatch) {
@@ -110,46 +137,61 @@ export function LedgerView({ projectId, project, requests, totals, periodLabel, 
     });
   }, [optimisticRequests, filter, typeFilter, search]);
 
-  const scale = meterScale(project.contractedHours, totals);
-  const lineLabel =
-    project.mode === 'foundation'
-      ? `Contracted scope · ${formatHours(project.contractedHours)} ${hoursUnit(project.contractedHours)}`
-      : `Monthly capacity · ${formatHours(project.contractedHours)} ${hoursUnit(project.contractedHours)}`;
-  const breached = totals.beyondCount > 0;
+  const breached = readout.kind === 'team' ? readout.totals.beyondCount > 0 : readout.beyondCount > 0;
 
   return (
     <div className="grid gap-6">
-      <ReadoutRow>
-        <ReadoutCell label="Requests logged" value={String(totals.requestCount)} />
-        <ReadoutCell label="Beyond scope" value={String(totals.beyondCount)} breached={breached} />
-        <ReadoutCell
-          label="Extra hours"
-          value={formatHours(totals.beyondHours)}
-          unit={hoursUnit(totals.beyondHours)}
-          breached={breached}
-        />
-        <ReadoutCell label="Additional cost" value={formatMoneyMinor(totals.additionalCostMinor, currency)} breached={breached} />
-      </ReadoutRow>
+      {readout.kind === 'team' ? (
+        <ReadoutRow>
+          <ReadoutCell label="Requests logged" value={String(readout.totals.requestCount)} />
+          <ReadoutCell label="Beyond scope" value={String(readout.totals.beyondCount)} breached={breached} />
+          <ReadoutCell
+            label="Extra hours"
+            value={formatHours(readout.totals.beyondHours)}
+            unit={hoursUnit(readout.totals.beyondHours)}
+            breached={breached}
+          />
+          <ReadoutCell
+            label="Additional cost"
+            value={formatMoneyMinor(readout.totals.additionalCostMinor, readout.currency)}
+            breached={breached}
+          />
+        </ReadoutRow>
+      ) : (
+        <ReadoutRow>
+          <ReadoutCell label="Requests logged" value={String(readout.requestCount)} />
+          <ReadoutCell label="Beyond scope" value={String(readout.beyondCount)} breached={breached} />
+        </ReadoutRow>
+      )}
 
-      <section className="bg-card border border-rule shadow-card rounded-panel px-6 pt-6 pb-5" aria-label="Hours against agreement">
-        <Meter
-          contractedHours={project.contractedHours}
-          inScopeHours={totals.inScopeHours}
-          pendingHours={totals.pendingHours}
-          beyondHours={totals.beyondHours}
-          scaleHours={scale}
-          lineLabel={lineLabel}
-          ariaLabel={`${formatHours(totals.inScopeHours)} hours in scope, ${formatHours(totals.pendingHours)} hours pending review, ${formatHours(totals.beyondHours)} hours beyond scope, against ${formatHours(project.contractedHours)} agreed hours.`}
-        />
-        <MeterLegend pendingNote="Pending review — not yet counted either way" />
-        {project.mode === 'retainer' ? (
-          <p className="font-sans text-mute mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
-            The meter counts {periodLabel}. It resets each cycle; the full history stays in the list below.
-          </p>
-        ) : null}
-      </section>
+      {/* The meter is an hours-against-the-agreement instrument, so it only
+          exists where hours and the contracted line do. Without them there is
+          no scale and no reference — a bar with neither would say nothing. */}
+      {readout.kind === 'team' ? (
+        <section className="bg-card border border-rule shadow-card rounded-panel px-6 pt-6 pb-5" aria-label="Hours against agreement">
+          <Meter
+            contractedHours={readout.contractedHours}
+            inScopeHours={readout.totals.inScopeHours}
+            pendingHours={readout.totals.pendingHours}
+            beyondHours={readout.totals.beyondHours}
+            scaleHours={meterScale(readout.contractedHours, readout.totals)}
+            lineLabel={
+              project.mode === 'foundation'
+                ? `Contracted scope · ${formatHours(readout.contractedHours)} ${hoursUnit(readout.contractedHours)}`
+                : `Monthly capacity · ${formatHours(readout.contractedHours)} ${hoursUnit(readout.contractedHours)}`
+            }
+            ariaLabel={`${formatHours(readout.totals.inScopeHours)} hours in scope, ${formatHours(readout.totals.pendingHours)} hours pending review, ${formatHours(readout.totals.beyondHours)} hours beyond scope, against ${formatHours(readout.contractedHours)} agreed hours.`}
+          />
+          <MeterLegend pendingNote="Pending review — not yet counted either way" />
+          {project.mode === 'retainer' ? (
+            <p className="font-sans text-mute mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
+              The meter counts {periodLabel}. It resets each cycle; the full history stays in the list below.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
-      <SubmitForm onSubmit={handleCreate} />
+      <SubmitForm onSubmit={handleCreate} onUploadAttachment={handleUpload} />
 
       {/* Team only: transcripts are a whole meeting's conversation, including
           things not meant for the client's side of the ledger. */}
@@ -229,6 +271,12 @@ export function LedgerView({ projectId, project, requests, totals, periodLabel, 
                   </>
                 }
                 sourceQuote={r.sourceQuote}
+                attachments={r.attachments.map((a) => ({
+                  ...a,
+                  // Authenticated route, not a storage URL: access is checked
+                  // per request and the presigned link is short-lived.
+                  url: `/${slug}/attachments/${a.key.split('/').map(encodeURIComponent).join('/')}`,
+                }))}
                 detail={r.detail}
                 link={r.link}
                 timestamps={`${ts.client} · ${ts.india}`}

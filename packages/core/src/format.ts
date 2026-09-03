@@ -101,7 +101,13 @@ export function toCsv(requests: ChangeRequest[], project: ProjectConfig): string
   return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\n');
 }
 
-/** Per-project sequential human-readable ID (C5): 0 → GM-001. */
-export function makeRef(previousCount: number): string {
-  return `GM-${String(previousCount + 1).padStart(3, '0')}`;
+/**
+ * Per-project sequential human-readable ID (C5): 0 → GM-001.
+ *
+ * Takes the highest ref number the project has already issued, not its row
+ * count — those diverge the moment a request is deleted, and reusing a
+ * number collides with the ref that still holds it.
+ */
+export function makeRef(highestIssued: number): string {
+  return `GM-${String(highestIssued + 1).padStart(3, '0')}`;
 }

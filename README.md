@@ -58,6 +58,42 @@ links) are fully wired in `auth.ts` — set the corresponding vars in `apps/ledg
 server console instead of sending an email, so the real (non-dev) sign-in flow is still
 testable end-to-end.
 
+## Attachments
+
+Requests take screenshots and documents, not just a pasted link (C8). **Attach a file**, or
+just paste a screenshot anywhere in the form — the PRD calls direct paste-to-upload the thing
+that "removes the last real reason to use WhatsApp instead", so the paste handler is bound to
+the whole form rather than one control. Images and PDFs, 10MB each, enforced server-side; the
+link field is still there alongside it.
+
+Files live in a **private** Neon Object Storage bucket that branches with the database, so a
+branch's rows and the files they reference stay in step. Private matters: an attachment is
+usually a screenshot of the client's own site or dashboard, so nothing is anonymously
+readable. Reads go through `/[slug]/attachments/[key]`, which checks project access, verifies
+the key carries that project's prefix, then redirects to a short-lived presigned URL —
+verified: a request with no session gets bounced to `/login`, not the image.
+
+The PRD specified Vercel Blob, decided before Neon was in the stack. Neon keeps it to one
+backend and one credential system; swapping is a one-line adapter change in `lib/storage.ts`.
+Provision the bucket with `neon deploy` (declared in the repo-root `neon.ts`) and copy the
+four `AWS_*` variables it writes into `apps/ledger/.env.local`.
+
+## What the client sees
+
+The client surface carries **no effort or money figures** — no hours, no additional cost, no
+contracted line, and no meter. Only the two counts (requests logged, beyond scope), the scope
+verdict on each request, and the log itself.
+
+This is a deliberate departure from the PRD, which argues the opposite ("the client should be
+able to see the cost number before Growthmak sends the invoice, not after", and G1's "one
+unambiguous count... visible to both sides"). The shared-count half of G1 survives; the
+shared-bill half does not. Worth revisiting against G4 at the four-week mark, since the PRD's
+reasoning was that transparency is what keeps the client using the tool.
+
+It's enforced in `app/[slug]/page.tsx`, not in the component: a client's payload never
+contains the figures, so they aren't recoverable from the page source. Per-request hours are
+stripped too — otherwise a client could add them up.
+
 ## Logging requests from a meeting transcript
 
 The PRD names calls as an intake channel that "does not count" — a request made out loud on

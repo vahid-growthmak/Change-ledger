@@ -15,6 +15,11 @@ export interface RequestCardProps {
    * "I never asked for that" can be answered with the words from the call.
    */
   sourceQuote?: string | null;
+  /**
+   * Attachments to render (C8), already resolved to authenticated URLs by the
+   * caller — this component never builds a storage URL itself.
+   */
+  attachments?: { key: string; name: string; contentType: string; url: string }[];
   /** "14 Aug, 9:12 pm CDT · 15 Aug, 7:42 am IST" */
   timestamps: string;
   /** Done / Won't do drop to 55% opacity — the count stays visibly intact. */
@@ -39,6 +44,7 @@ export function RequestCard({
   detail,
   link,
   sourceQuote,
+  attachments,
   timestamps,
   dimmed,
   triageSlot,
@@ -79,6 +85,42 @@ export function RequestCard({
         >
           {sourceQuote}
         </blockquote>
+      ) : null}
+      {attachments && attachments.length > 0 ? (
+        <div className="flex flex-wrap items-start gap-2 mt-3">
+          {attachments.map((a) =>
+            a.contentType.startsWith('image/') ? (
+              <a
+                key={a.key}
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={a.name}
+                className="block border border-rule rounded-inline overflow-hidden"
+                style={{ width: 96, height: 96 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={a.url}
+                  alt={a.name}
+                  loading="lazy"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </a>
+            ) : (
+              <a
+                key={a.key}
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center border border-rule rounded-inline px-3 py-2 font-mono text-ink hover:border-signal"
+                style={{ fontSize: '10.5px' }}
+              >
+                {a.name}
+              </a>
+            ),
+          )}
+        </div>
       ) : null}
       {link ? (
         <a

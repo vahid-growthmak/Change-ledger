@@ -1,6 +1,7 @@
 import type { ChangeRequest, ProjectConfig } from '@growthmak/core';
 import type { projects, requests } from '@growthmak/db';
 import type { InferSelectModel } from 'drizzle-orm';
+import { parseAttachments } from './storage';
 
 type RequestRow = InferSelectModel<typeof requests>;
 type ProjectRow = InferSelectModel<typeof projects>;
@@ -21,6 +22,7 @@ export function toChangeRequest(row: RequestRow): ChangeRequest {
     status: row.status,
     source: row.source,
     sourceQuote: row.sourceQuote,
+    attachments: parseAttachments(row.attachments),
     period: row.period,
     createdAt: (row.createdAt ?? new Date()).toISOString(),
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,

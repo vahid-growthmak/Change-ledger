@@ -4,16 +4,24 @@ import { useState } from 'react';
 import { createRequestSchema, REQUEST_TYPES, REQUEST_TYPE_LABELS, type CreateRequestInput } from '@growthmak/core';
 import { Button } from './primitives';
 import { FieldLabel, InlineError, Select, TextArea, TextInput } from './fields';
+import { AttachmentPicker, type AttachmentMeta } from './AttachmentPicker';
 
 interface SubmitFormProps {
   /** May throw (e.g. a failed Server Action) — the form stays filled in and shows the error inline. */
-  onSubmit: (input: CreateRequestInput) => void | Promise<void>;
+  onSubmit: (input: CreateRequestInput, attachments: AttachmentMeta[]) => void | Promise<void>;
+  /**
+   * Uploads one file and resolves with its stored metadata. Omit to hide the
+   * attachment control entirely — the public tool has no backend to upload
+   * to, so there it simply isn't offered.
+   */
+  onUploadAttachment?: (file: File) => Promise<AttachmentMeta>;
 }
 
 const blank = { title: '', type: 'other', location: '', detail: '', link: '' };
 
-export function SubmitForm({ onSubmit }: SubmitFormProps) {
+export function SubmitForm({ onSubmit, onUploadAttachment }: SubmitFormProps) {
   const [values, setValues] = useState(blank);
+  const [attachments, setAttachments] = useState<AttachmentMeta[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -31,9 +39,10 @@ export function SubmitForm({ onSubmit }: SubmitFormProps) {
     setError(null);
     setPending(true);
     try {
-      await onSubmit(parsed.data);
+      await onSubmit(parsed.data, attachments);
       // Only clear on success — a failed submit keeps the input, nothing is lost (Failure states).
       setValues(blank);
+      setAttachments([]);
       setMoreOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save. Check your connection, then try again.');
@@ -106,6 +115,19 @@ export function SubmitForm({ onSubmit }: SubmitFormProps) {
             </div>
           </>
         ) : null}
+
+        {/* Not hidden behind the disclosure: pasting a screenshot is the thing
+            that removes the reason to use WhatsApp instead (C8), and a control
+            nobody can find doesn't do that. */}
+        {onUploadAttachment ? (
+          <AttachmentPicker
+            onUpload={onUploadAttachment}
+            attachments={attachments}
+            onChange={setAttachments}
+            disabled={pending}
+          />
+        ) : null}
+
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending}>
             {pending ? 'Logging…' : 'Log this request'}

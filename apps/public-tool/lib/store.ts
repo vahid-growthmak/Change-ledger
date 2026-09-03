@@ -82,6 +82,9 @@ export function useLedger() {
         // here is typed in directly.
         source: 'direct',
         sourceQuote: null,
+        // No backend here, so nothing to upload to — the public tool offers
+        // the link field only.
+        attachments: [],
         period: periodForInsert(s.project.mode, now),
         createdAt: now.toISOString(),
         updatedAt: null,

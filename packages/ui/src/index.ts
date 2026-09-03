@@ -6,3 +6,4 @@ export * from './RequestCard';
 export * from './TriageRow';
 export * from './Distribution';
 export * from './SubmitForm';
+export * from './AttachmentPicker';

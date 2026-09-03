@@ -12,7 +12,22 @@ import {
 import { auditTrail, db, projectMembers, projects, requests, users } from '@growthmak/db';
 import { and, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { requireSession, requireTeam } from './authz';
+import { keyBelongsToProject } from './storage';
+
+/** Shape of the metadata our own upload route returns, re-checked on the way in. */
+const attachmentMetaSchema = z
+  .array(
+    z.object({
+      key: z.string().min(1).max(300),
+      name: z.string().max(200),
+      contentType: z.string().max(100),
+      size: z.number().int().nonnegative(),
+    }),
+  )
+  .max(10, 'Ten attachments is plenty for one request.')
+  .default([]);
 
 function slugify(input: string): string {
   return input
@@ -32,31 +47,63 @@ async function assertProjectMember(userId: string, role: 'team' | 'client', proj
   if (!membership) throw new Error('Not a member of this project.');
 }
 
+/**
+ * How many refs this project has ever issued, as the highest number used —
+ * not the row count.
+ *
+ * Counting rows looks equivalent and isn't: delete one request and the next
+ * count collides with a ref that already exists, the unique constraint
+ * rejects the insert, and logging fails outright. Taking the maximum is
+ * monotonic, so refs are never reused and a gap just stays a gap. Run inside
+ * the insert's transaction, which is what keeps two simultaneous submissions
+ * from claiming the same number.
+ */
+async function highestRefNumber(
+  tx: { execute: (query: ReturnType<typeof sql>) => Promise<unknown> },
+  projectId: string,
+): Promise<number> {
+  const result = (await tx.execute(sql`
+    select coalesce(max(nullif(regexp_replace(${requests.ref}, '\\D', '', 'g'), '')::int), 0) as highest
+    from ${requests}
+    where ${requests.projectId} = ${projectId}
+  `)) as { rows?: { highest: number | string }[] } | { highest: number | string }[];
+
+  // postgres-js returns an array of rows; PGlite wraps them in { rows }.
+  const rows = Array.isArray(result) ? result : (result.rows ?? []);
+  return Number(rows[0]?.highest ?? 0);
+}
+
 /** C1–C8: any project member — team or client — can log a request. */
-export async function createRequest(projectId: string, rawInput: unknown) {
+export async function createRequest(projectId: string, rawInput: unknown, rawAttachments?: unknown) {
   const session = await requireSession();
   await assertProjectMember(session.userId, session.role, projectId);
 
   const input = createRequestSchema.parse(rawInput);
+  // Attachment metadata comes back from our own upload route, but it arrives
+  // via the browser, so it is re-validated and each key is re-checked against
+  // this project — a caller must not be able to staple another project's file
+  // onto their own request.
+  const attachments = attachmentMetaSchema
+    .parse(rawAttachments ?? [])
+    .filter((a) => keyBelongsToProject(a.key, projectId));
+
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
   if (!project) throw new Error('Project not found.');
 
-  // Ref generated in the same transaction as the insert, against a
-  // per-project count, so two simultaneous submissions cannot collide.
+  // Ref generated in the same transaction as the insert, so two simultaneous
+  // submissions cannot collide on the same number.
   await db.transaction(async (tx) => {
-    const [{ count }] = await tx
-      .select({ count: sql<number>`count(*)::int` })
-      .from(requests)
-      .where(eq(requests.projectId, projectId));
+    const highest = await highestRefNumber(tx, projectId);
 
     await tx.insert(requests).values({
       projectId,
-      ref: makeRef(count),
+      ref: makeRef(highest),
       title: input.title,
       type: input.type as (typeof requests.$inferInsert)['type'],
       location: input.location || null,
       detail: input.detail || null,
       link: input.link || null,
+      attachments,
       scope: null, // pending review — never a verdict by default (T6)
       layer: null,
       hours: null,
@@ -109,18 +156,15 @@ export async function createRequestsFromTranscript(projectId: string, rawItems: 
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
   if (!project) throw new Error('Project not found.');
 
-  // One transaction for the batch: refs are allocated off a single count, so
-  // a confirmed set of five lands as five consecutive refs with no collision.
+  // One transaction for the batch, numbered from the highest ref already
+  // issued, so a confirmed set of five lands as five consecutive refs.
   await db.transaction(async (tx) => {
-    const [{ count }] = await tx
-      .select({ count: sql<number>`count(*)::int` })
-      .from(requests)
-      .where(eq(requests.projectId, projectId));
+    const highest = await highestRefNumber(tx, projectId);
 
     await tx.insert(requests).values(
       items.map((item, index) => ({
         projectId,
-        ref: makeRef(count + index),
+        ref: makeRef(highest + index),
         title: item.title,
         type: item.type as (typeof requests.$inferInsert)['type'],
         location: item.location || null,

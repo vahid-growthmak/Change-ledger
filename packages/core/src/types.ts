@@ -6,6 +6,18 @@ export type RequestStatus = 'new' | 'reviewed' | 'in_progress' | 'done' | 'wont_
 /** How the request entered the ledger — typed into the form, or lifted from a meeting transcript. */
 export type RequestSource = 'direct' | 'transcript';
 
+/**
+ * One attached screenshot or document (C8). Only the storage key is kept —
+ * the bytes live in object storage and are served through an authenticated
+ * route, never a public URL.
+ */
+export interface RequestAttachment {
+  key: string;
+  name: string;
+  contentType: string;
+  size: number;
+}
+
 export interface ProjectConfig {
   clientName: string;
   projectName: string;
@@ -39,6 +51,8 @@ export interface ChangeRequest {
   source: RequestSource;
   /** For transcript-sourced requests: the excerpt that backs it. */
   sourceQuote: string | null;
+  /** Screenshots and documents attached to the request (C8). */
+  attachments: RequestAttachment[];
   /** Retainer cycle as YYYY-MM-01; null on fixed-scope projects. */
   period: string | null;
   /** UTC ISO timestamp. */

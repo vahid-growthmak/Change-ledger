@@ -21,7 +21,29 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   // included) — only the resulting totals cross into the client bundle,
   // never the rate itself (M5, Constraints).
   const totals = computeTotals(requests, fullProject, period);
-  const { rateMinor: _rateMinor, ...publicProject } = fullProject;
+  // Neither the rate nor the contracted hours leave the server on their own:
+  // contractedHours travels inside the team-only readout below, so a client
+  // payload has no commercial figure in it at all.
+  const {
+    rateMinor: _rateMinor,
+    contractedHours: _contractedHours,
+    currency: _currency,
+    ...publicProject
+  } = fullProject;
+
+  /**
+   * The client surface deliberately carries no effort or money figures: no
+   * hours, no cost, no contracted line. Enforced here rather than hidden in
+   * the component, because anything handed to a Client Component is readable
+   * in the page source — the same reasoning that keeps rateMinor server-side
+   * (A4). Per-request hours are stripped too: a client who could read them
+   * off each card could just add them up.
+   */
+  const isTeam = session.role === 'team';
+  const readout = isTeam
+    ? ({ kind: 'team', totals, contractedHours: fullProject.contractedHours, currency: fullProject.currency } as const)
+    : ({ kind: 'client', requestCount: totals.requestCount, beyondCount: totals.beyondCount } as const);
+  const visibleRequests = isTeam ? requests : requests.map((r) => ({ ...r, hours: null }));
 
   const periodLabel = period
     ? new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(period))
@@ -67,12 +89,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       <LedgerView
         projectId={project.id}
+        slug={project.slug}
         project={publicProject}
-        requests={requests}
-        totals={totals}
+        requests={visibleRequests}
+        readout={readout}
         periodLabel={periodLabel}
         role={session.role}
-        currency={fullProject.currency}
       />
     </main>
   );
