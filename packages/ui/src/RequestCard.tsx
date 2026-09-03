@@ -10,6 +10,11 @@ export interface RequestCardProps {
   meta: React.ReactNode;
   detail?: string | null;
   link?: string | null;
+  /**
+   * For a request lifted from a meeting: what was actually said. Shown so
+   * "I never asked for that" can be answered with the words from the call.
+   */
+  sourceQuote?: string | null;
   /** "14 Aug, 9:12 pm CDT · 15 Aug, 7:42 am IST" */
   timestamps: string;
   /** Done / Won't do drop to 55% opacity — the count stays visibly intact. */
@@ -33,6 +38,7 @@ export function RequestCard({
   meta,
   detail,
   link,
+  sourceQuote,
   timestamps,
   dimmed,
   triageSlot,
@@ -65,6 +71,14 @@ export function RequestCard({
         <p className="font-sans text-ink mt-2" style={{ fontSize: 13, lineHeight: 1.55 }}>
           {detail}
         </p>
+      ) : null}
+      {sourceQuote ? (
+        <blockquote
+          className="font-sans text-mute border-l-2 border-rule pl-3 mt-2"
+          style={{ fontSize: 13, lineHeight: 1.55 }}
+        >
+          {sourceQuote}
+        </blockquote>
       ) : null}
       {link ? (
         <a

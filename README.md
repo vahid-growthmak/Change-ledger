@@ -58,6 +58,30 @@ links) are fully wired in `auth.ts` — set the corresponding vars in `apps/ledg
 server console instead of sending an email, so the real (non-dev) sign-in flow is still
 testable end-to-end.
 
+## Logging requests from a meeting transcript
+
+The PRD names calls as an intake channel that "does not count" — a request made out loud on
+a call leaves nothing behind. **Log from a meeting transcript** (team view, on a project
+page) closes that gap: paste the transcript from any AI notetaker, and Claude returns the
+change requests it finds.
+
+It **proposes; it never logs.** You get a list with each candidate's supporting quote, edit
+whatever was read wrongly, deselect anything that isn't a request, then confirm. Only what
+you keep is written, and it lands as **pending review** like any other request — finding a
+request is not triaging it (T6). Low-confidence candidates are flagged rather than dropped,
+so the judgement stays with you.
+
+Requests logged this way carry their provenance: `source = 'transcript'` plus the verbatim
+excerpt, shown on the card and included in the CSV export. That's deliberate — when a client
+says "I never asked for that," the ledger can answer with what was actually said instead of
+becoming an argument.
+
+Needs `ANTHROPIC_API_KEY` in `apps/ledger/.env.local`. Without it the panel returns a clear
+error and nothing else in the app is affected. It runs on `claude-opus-5` with adaptive
+thinking; a call transcript is roughly 10–25k input tokens, so a few cents per meeting.
+Team-only by design: a transcript is a whole meeting's conversation, including things that
+were never meant for the client's side of the ledger.
+
 **PGlite is single-process.** Only one Node process may hold `.pglite/` open at a time —
 running a second one (a one-off query script, a second `next dev`, `db:migrate` while the
 server's already running) corrupts its file locks and crashes both sides. Stop the dev
@@ -115,6 +139,9 @@ correctly:
   exists) — verified end-to-end, not just asserted.
 - **Every triage field change writes an audit trail row** (T7), in the same transaction as
   the update — `lib/actions.ts`'s `triageRequest`.
+- **Transcript extraction is split from committing** on purpose: `extractFromTranscript`
+  writes nothing, `createRequestsFromTranscript` writes only what a team member confirmed.
+  An LLM's reading of a call must not become a billable line item unreviewed.
 - **Both apps share `packages/ui`**, including `SubmitForm`, `TriageRow`, and `Distribution` —
   the Client Ledger doesn't reimplement these; it wires the same components to Server Actions
   instead of `localStorage`.

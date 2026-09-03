@@ -78,6 +78,10 @@ export function useLedger() {
         scope: null, // pending review — never a verdict by default (T6)
         hours: null,
         status: 'new',
+        // The public tool has no backend, so no transcript import — everything
+        // here is typed in directly.
+        source: 'direct',
+        sourceQuote: null,
         period: periodForInsert(s.project.mode, now),
         createdAt: now.toISOString(),
         updatedAt: null,

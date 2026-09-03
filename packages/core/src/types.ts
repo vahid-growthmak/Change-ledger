@@ -3,6 +3,8 @@ export type RequestType = 'bug' | 'design' | 'content' | 'feature' | 'ads' | 'ot
 export type GrowthLayer = 'foundation' | 'traffic' | 'conversion' | 'operations' | 'social_proof';
 export type ScopeVerdict = 'in_scope' | 'beyond_scope' | 'needs_quote';
 export type RequestStatus = 'new' | 'reviewed' | 'in_progress' | 'done' | 'wont_do';
+/** How the request entered the ledger — typed into the form, or lifted from a meeting transcript. */
+export type RequestSource = 'direct' | 'transcript';
 
 export interface ProjectConfig {
   clientName: string;
@@ -34,6 +36,9 @@ export interface ChangeRequest {
   /** Effort estimate in hours, half-hour increments. null = not yet estimated. */
   hours: number | null;
   status: RequestStatus;
+  source: RequestSource;
+  /** For transcript-sourced requests: the excerpt that backs it. */
+  sourceQuote: string | null;
   /** Retainer cycle as YYYY-MM-01; null on fixed-scope projects. */
   period: string | null;
   /** UTC ISO timestamp. */
@@ -81,6 +86,11 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   in_progress: 'In progress',
   done: 'Done',
   wont_do: "Won't do",
+};
+
+export const REQUEST_SOURCE_LABELS: Record<RequestSource, string> = {
+  direct: 'Logged directly',
+  transcript: 'From meeting',
 };
 
 export const REQUEST_TYPES = Object.keys(REQUEST_TYPE_LABELS) as RequestType[];

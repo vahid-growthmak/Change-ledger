@@ -23,6 +23,23 @@ export const createRequestSchema = z.object({
     .or(z.literal('')),
 });
 
+/**
+ * What the reviewer confirmed from a transcript extraction, after any edits.
+ * `confidence` is deliberately absent — it's a hint for the person reviewing,
+ * not a property of the request, so it never reaches the ledger.
+ */
+export const transcriptCommitSchema = z
+  .array(
+    z.object({
+      title: z.string().trim().min(1, 'Every kept request needs a description.').max(300),
+      type: z.enum(REQUEST_TYPES as [string, ...string[]]),
+      location: z.string().trim().max(200).default(''),
+      detail: z.string().trim().max(4000).default(''),
+      quote: z.string().trim().max(4000).default(''),
+    }),
+  )
+  .max(50, 'That is more than 50 requests from one call — split the transcript and review in batches.');
+
 /** Triage (T1–T4). Half-hour increments enforced here, both sides. */
 export const triageSchema = z.object({
   scope: z.enum(SCOPE_VERDICTS as [string, ...string[]]).nullable(),

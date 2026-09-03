@@ -5,6 +5,7 @@ import {
   makeRef,
   periodForInsert,
   projectConfigSchema,
+  transcriptCommitSchema,
   triageSchema,
   type TriagePatch,
 } from '@growthmak/core';
@@ -60,12 +61,87 @@ export async function createRequest(projectId: string, rawInput: unknown) {
       layer: null,
       hours: null,
       status: 'new',
+      source: 'direct',
       period: periodForInsert(project.mode),
       requestedBy: session.userId,
     });
   });
 
   revalidatePath(`/${project.slug}`);
+}
+
+/**
+ * Reads a meeting transcript and returns candidate requests. Team only, and
+ * deliberately writes nothing: the caller reviews and confirms via
+ * createRequestsFromTranscript below. Splitting extract from commit is the
+ * whole safety property — an LLM's reading of a call should never become a
+ * billable line item without a person agreeing to it first.
+ */
+export async function extractFromTranscript(projectId: string, transcript: unknown) {
+  await requireTeam();
+
+  if (typeof transcript !== 'string') throw new Error('Paste the transcript text.');
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!project) throw new Error('Project not found.');
+
+  const { extractRequestsFromTranscript } = await import('./transcript');
+  const { extraction, usage } = await extractRequestsFromTranscript(transcript, {
+    clientName: project.clientName,
+    projectName: project.projectName,
+    mode: project.mode,
+  });
+
+  return { ...extraction, usage };
+}
+
+/**
+ * Commits the candidates a team member kept, after any edits they made.
+ * Each lands as a normal pending-review request (T6) carrying its
+ * provenance and the quote it came from.
+ */
+export async function createRequestsFromTranscript(projectId: string, rawItems: unknown) {
+  const session = await requireTeam();
+
+  const items = transcriptCommitSchema.parse(rawItems);
+  if (items.length === 0) return { created: 0 };
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!project) throw new Error('Project not found.');
+
+  // One transaction for the batch: refs are allocated off a single count, so
+  // a confirmed set of five lands as five consecutive refs with no collision.
+  await db.transaction(async (tx) => {
+    const [{ count }] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(requests)
+      .where(eq(requests.projectId, projectId));
+
+    await tx.insert(requests).values(
+      items.map((item, index) => ({
+        projectId,
+        ref: makeRef(count + index),
+        title: item.title,
+        type: item.type as (typeof requests.$inferInsert)['type'],
+        location: item.location || null,
+        detail: item.detail || null,
+        link: null,
+        scope: null, // still pending review — extraction is not triage (T6)
+        layer: null,
+        hours: null,
+        status: 'new' as const,
+        source: 'transcript' as const,
+        sourceQuote: item.quote || null,
+        period: periodForInsert(project.mode),
+        // The team member who confirmed it. The client said it on the call,
+        // but only this person's judgement put it in the ledger.
+        requestedBy: session.userId,
+      })),
+    );
+  });
+
+  revalidatePath(`/${project.slug}`);
+  return { created: items.length };
 }
 
 /** T1–T5, T7: team only. Every changed field is written to the audit trail. */

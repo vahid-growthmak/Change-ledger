@@ -37,6 +37,7 @@ import {
   type ScopeTone,
 } from '@growthmak/ui';
 import { createRequest, triageRequest } from '@/lib/actions';
+import { TranscriptImport } from './TranscriptImport';
 
 type ListFilter = 'all' | 'pending' | 'beyond' | 'open';
 
@@ -150,6 +151,10 @@ export function LedgerView({ projectId, project, requests, totals, periodLabel, 
 
       <SubmitForm onSubmit={handleCreate} />
 
+      {/* Team only: transcripts are a whole meeting's conversation, including
+          things not meant for the client's side of the ledger. */}
+      {role === 'team' ? <TranscriptImport projectId={projectId} /> : null}
+
       {optimisticRequests.length > 0 ? (
         <section aria-label="Filters" className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -220,8 +225,10 @@ export function LedgerView({ projectId, project, requests, totals, periodLabel, 
                     {r.layer ? ` · ${GROWTH_LAYER_LABELS[r.layer]}` : ''}
                     {r.hours !== null ? ` · ${formatHours(r.hours)} ${hoursUnit(r.hours)}` : ''}
                     {` · ${STATUS_LABELS[r.status]}`}
+                    {r.source === 'transcript' ? ' · From meeting' : ''}
                   </>
                 }
+                sourceQuote={r.sourceQuote}
                 detail={r.detail}
                 link={r.link}
                 timestamps={`${ts.client} · ${ts.india}`}

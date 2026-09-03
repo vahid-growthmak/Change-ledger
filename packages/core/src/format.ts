@@ -3,6 +3,7 @@ import type { ChangeRequest, ProjectConfig } from './types';
 import {
   GROWTH_LAYER_LABELS,
   PENDING_LABEL,
+  REQUEST_SOURCE_LABELS,
   REQUEST_TYPE_LABELS,
   SCOPE_LABELS,
   STATUS_LABELS,
@@ -72,6 +73,8 @@ export function toCsv(requests: ChangeRequest[], project: ProjectConfig): string
     'Hours',
     'Status',
     'Period',
+    'Source',
+    'Source quote',
     `Logged (${project.clientTz})`,
     `Logged (${INDIA_TZ})`,
   ];
@@ -89,6 +92,8 @@ export function toCsv(requests: ChangeRequest[], project: ProjectConfig): string
       r.hours,
       STATUS_LABELS[r.status],
       r.period,
+      REQUEST_SOURCE_LABELS[r.source],
+      r.sourceQuote,
       ts.client,
       ts.india,
     ];

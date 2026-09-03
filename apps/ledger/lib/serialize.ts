@@ -19,6 +19,8 @@ export function toChangeRequest(row: RequestRow): ChangeRequest {
     scope: row.scope,
     hours: row.hours === null ? null : Number(row.hours),
     status: row.status,
+    source: row.source,
+    sourceQuote: row.sourceQuote,
     period: row.period,
     createdAt: (row.createdAt ?? new Date()).toISOString(),
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,

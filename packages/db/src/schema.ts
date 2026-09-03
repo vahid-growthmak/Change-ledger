@@ -26,6 +26,8 @@ export const growthLayer = pgEnum('growth_layer', ['foundation', 'traffic', 'con
 export const scopeVerdict = pgEnum('scope_verdict', ['in_scope', 'beyond_scope', 'needs_quote']);
 export const requestStatus = pgEnum('request_status', ['new', 'reviewed', 'in_progress', 'done', 'wont_do']);
 export const userRole = pgEnum('user_role', ['team', 'client']);
+/** How the request entered the ledger. Provenance is evidential, same reasoning as T7. */
+export const requestSource = pgEnum('request_source', ['direct', 'transcript']);
 
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -125,6 +127,12 @@ export const requests = pgTable(
     detail: text('detail'),
     link: text('link'),
     attachments: jsonb('attachments').default([]),
+    // Provenance: 'direct' = someone typed it into the form; 'transcript' =
+    // extracted from a meeting transcript and confirmed by a team member.
+    // sourceQuote holds the supporting excerpt, so "I never asked for that"
+    // can be answered with what was actually said rather than argued.
+    source: requestSource('source').notNull().default('direct'),
+    sourceQuote: text('source_quote'),
     layer: growthLayer('layer'), // null = untagged
     scope: scopeVerdict('scope'), // null = pending review (T6)
     hours: numeric('hours', { precision: 5, scale: 1 }),

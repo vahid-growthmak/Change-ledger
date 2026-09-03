@@ -25,6 +25,8 @@ function req(over: Partial<ChangeRequest>): ChangeRequest {
     scope: null,
     hours: null,
     status: 'new',
+    source: 'direct',
+    sourceQuote: null,
     period: null,
     createdAt: '2026-08-14T18:00:00.000Z',
     updatedAt: null,
