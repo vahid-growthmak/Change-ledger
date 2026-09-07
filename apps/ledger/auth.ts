@@ -71,9 +71,34 @@ const providers: NextAuthConfig['providers'] = [
         // No mail server configured: print the link so the flow is still
         // usable end-to-end without an email account.
         // eslint-disable-next-line no-console
-        console.log(`\nMagic link for ${email}:\n${url}\n`);
+        const preview = new URL(url);
+        const inert = new URL('/login/verify', preview.origin);
+        preview.searchParams.forEach((v, k) => inert.searchParams.set(k, v));
+        // eslint-disable-next-line no-console
+        console.log(`\nMagic link for ${email}:\n${inert.toString()}\n`);
         return;
       }
+
+      /**
+       * The emailed link points at an interstitial page, not straight at the
+       * callback.
+       *
+       * Auth.js redeems a magic link on a plain GET, and a token is
+       * single-use — so whatever touches the URL first wins, and it is
+       * frequently not the person: browser prefetch and speculative
+       * loading, a mail or security scanner, or simply reloading the
+       * callback URL after it already succeeded. The evidence for this was
+       * a token whose row had been deleted (i.e. redeemed) while the person
+       * was looking at "that link has expired or was already used".
+       *
+       * /login/verify carries the same parameters but redeems nothing, so
+       * anything that opens it speculatively costs us nothing. Only the
+       * button on that page performs the real, consuming request.
+       */
+      const original = new URL(url);
+      const interstitial = new URL('/login/verify', original.origin);
+      original.searchParams.forEach((value, key) => interstitial.searchParams.set(key, value));
+      const linkUrl = interstitial.toString();
 
       const nodemailer = await import('nodemailer');
       const transport = nodemailer.createTransport(provider.server);
@@ -81,8 +106,8 @@ const providers: NextAuthConfig['providers'] = [
         to: email,
         from: provider.from,
         subject: 'Sign in to Change Ledger',
-        text: `Sign in by opening this link:\n${url}\n\nIt expires in ${ttlMinutes} minutes and works once.`,
-        html: `<p>Sign in by opening this link:</p><p><a href="${url}">${url}</a></p><p>This link expires in ${ttlMinutes} minutes and works once.</p>`,
+        text: `Sign in by opening this link:\n${linkUrl}\n\nIt expires in ${ttlMinutes} minutes and works once.`,
+        html: `<p>Sign in by opening this link:</p><p><a href="${linkUrl}">${linkUrl}</a></p><p>This link expires in ${ttlMinutes} minutes and works once.</p>`,
       });
     },
   }),
