@@ -9,12 +9,20 @@ import Resend from 'next-auth/providers/resend';
 const isProd = process.env.NODE_ENV === 'production';
 const allowedDomain = process.env.AUTH_ALLOWED_DOMAIN ?? 'growthmak.com';
 
+/**
+ * Whether Google Workspace SSO is usable at all. Auth.js validates every
+ * registered provider on any request to /api/auth/*, so a Google provider
+ * with no credentials doesn't merely fail its own flow — it returns a
+ * Configuration error for the whole handler, taking magic-link sign-in down
+ * with it and showing a bare "Server error" page. Register it only when it
+ * can actually work, so a deployment without Google credentials still has
+ * working email sign-in.
+ */
+export const googleConfigured = Boolean(
+  process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
+);
+
 const providers: NextAuthConfig['providers'] = [
-  Google({
-    // UX hint only — the real gate is the domain check in the signIn
-    // callback below (A2). This param can be bypassed client-side.
-    authorization: { params: { hd: allowedDomain } },
-  }),
   Resend({
     apiKey: process.env.RESEND_API_KEY ?? '',
     from: process.env.AUTH_EMAIL_FROM ?? 'Change Ledger <ledger@growthmak.com>',
@@ -39,6 +47,16 @@ const providers: NextAuthConfig['providers'] = [
     },
   }),
 ];
+
+if (googleConfigured) {
+  providers.push(
+    Google({
+      // UX hint only — the real gate is the domain check in the signIn
+      // callback below (A2). This param can be bypassed client-side.
+      authorization: { params: { hd: allowedDomain } },
+    }),
+  );
+}
 
 // Never ships to production — a same-tab convenience login for exercising
 // both roles without live Google/Resend credentials during local testing.

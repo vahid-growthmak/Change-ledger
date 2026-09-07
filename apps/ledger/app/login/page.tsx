@@ -1,3 +1,4 @@
+import { googleConfigured } from '@/auth';
 import { signInWithDev, signInWithGoogle, signInWithMagicLink } from './actions';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -35,8 +36,9 @@ export default async function LoginPage({
             Sign in
           </h1>
           <p className="font-sans text-mute mt-2" style={{ fontSize: '13.5px', lineHeight: 1.55 }}>
-            Clients get a one-tap link by email. Growthmak signs in with a growthmak.com Google
-            account.
+            {googleConfigured
+              ? 'Clients get a one-tap link by email. Growthmak signs in with a growthmak.com Google account.'
+              : 'Sign in with a one-tap link by email.'}
           </p>
         </div>
 
@@ -75,21 +77,27 @@ export default async function LoginPage({
           </button>
         </form>
 
-        <div className="flex items-center gap-3 text-mute font-mono uppercase" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
-          <span className="h-px bg-rule flex-1" />
-          or
-          <span className="h-px bg-rule flex-1" />
-        </div>
+        {/* Only offered when it can actually work — a button that returns a
+            server error is worse than no button. */}
+        {googleConfigured ? (
+          <>
+            <div className="flex items-center gap-3 text-mute font-mono uppercase" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
+              <span className="h-px bg-rule flex-1" />
+              or
+              <span className="h-px bg-rule flex-1" />
+            </div>
 
-        <form action={signInWithGoogle}>
-          <button
-            type="submit"
-            className="w-full inline-flex items-center justify-center rounded-btn font-sans font-semibold bg-transparent text-ink border border-rule hover:border-signal hover:text-signal-ink px-6 py-3"
-            style={{ fontSize: '13.5px', minHeight: 44 }}
-          >
-            Continue with Google
-          </button>
-        </form>
+            <form action={signInWithGoogle}>
+              <button
+                type="submit"
+                className="w-full inline-flex items-center justify-center rounded-btn font-sans font-semibold bg-transparent text-ink border border-rule hover:border-signal hover:text-signal-ink px-6 py-3"
+                style={{ fontSize: '13.5px', minHeight: 44 }}
+              >
+                Continue with Google
+              </button>
+            </form>
+          </>
+        ) : null}
 
         {isDev ? (
           <div className="border-t border-dashed border-rule pt-4 grid gap-2">
