@@ -98,8 +98,8 @@ stripped too — otherwise a client could add them up.
 
 The PRD names calls as an intake channel that "does not count" — a request made out loud on
 a call leaves nothing behind. **Log from a meeting transcript** (team view, on a project
-page) closes that gap: paste the transcript from any AI notetaker, and Claude returns the
-change requests it finds.
+page) closes that gap: paste the transcript from any AI notetaker and get back the change
+requests it finds.
 
 It **proposes; it never logs.** You get a list with each candidate's supporting quote, edit
 whatever was read wrongly, deselect anything that isn't a request, then confirm. Only what
@@ -112,9 +112,15 @@ excerpt, shown on the card and included in the CSV export. That's deliberate —
 says "I never asked for that," the ledger can answer with what was actually said instead of
 becoming an argument.
 
-Needs `ANTHROPIC_API_KEY` in `apps/ledger/.env.local`. Without it the panel returns a clear
-error and nothing else in the app is affected. It runs on `claude-opus-5` with adaptive
-thinking; a call transcript is roughly 10–25k input tokens, so a few cents per meeting.
+Needs `PERPLEXITY_API_KEY` in `apps/ledger/.env.local`. Without it the panel returns a clear
+error and nothing else in the app is affected. It runs on `sonar-pro` (override with
+`PERPLEXITY_MODEL`) at `temperature: 0`, so the same transcript reads the same way twice.
+
+**`disable_search: true` is the load-bearing line** in `lib/transcript.ts`. Perplexity's
+models search the web by default, and this is a closed-book task — everything the answer may
+draw on is in the pasted text. Leaving search on would invite the open web into a commercial
+record. If you ever swap the model or refactor that call, keep that flag.
+
 Team-only by design: a transcript is a whole meeting's conversation, including things that
 were never meant for the client's side of the ledger.
 

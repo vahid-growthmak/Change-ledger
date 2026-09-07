@@ -2,18 +2,18 @@
  * The shape of a transcript extraction.
  *
  * Deliberately written against `zod/v4` (shipped inside zod 3.25 as a
- * subpath) rather than the v3 API the rest of this package uses: the
- * Anthropic SDK's `zodOutputFormat` helper takes a v4 schema, and one
- * schema that both constrains the model's output and validates what comes
- * back beats two definitions that can drift apart. The version split is
- * confined to this file on purpose — no schema crosses between here and
- * `schemas.ts`.
+ * subpath) rather than the v3 API the rest of this package uses: v4 can emit
+ * JSON Schema via `z.toJSONSchema`, which is what the provider's structured
+ * output needs. One schema both constrains the model's output and validates
+ * what comes back, rather than two definitions that can drift apart. The
+ * version split is confined to this file on purpose — no schema crosses
+ * between here and `schemas.ts`.
  */
 import { z } from 'zod/v4';
 import { REQUEST_TYPES } from './types';
 
 /**
- * One change request Claude found in a meeting transcript.
+ * One change request found in a meeting transcript.
  *
  * Nothing described here is written to the ledger directly: these are
  * candidates a team member reviews, edits, and confirms. An extraction that
