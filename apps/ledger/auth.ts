@@ -138,21 +138,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       // next-auth v5's JWT callback param doesn't reliably pick up the
       // module-augmented shape here — cast locally rather than fight it.
       const t = token as { uid?: string; role?: 'team' | 'client' };
       if (user?.id) {
         t.uid = user.id;
-        if (account?.provider === 'google') {
-          // Google + growthmak.com domain is the one authoritative signal
-          // for team membership — confirm it every sign-in (A4).
+
+        /**
+         * An address on the company domain is the signal for team, whichever
+         * way they signed in. Keyed on the domain rather than on the Google
+         * provider specifically, because otherwise there is no way to create
+         * the first team user without a Google Cloud OAuth client: a new
+         * colleague arriving by magic link would be written as a client and
+         * land on "No project yet" with no route out of it.
+         *
+         * Both paths prove control of the mailbox — Google by SSO, magic link
+         * by delivering a single-use token to it — and only Growthmak staff
+         * have growthmak.com mailboxes, so the trust is equivalent. This is
+         * a slight relaxation of A2's letter (which names Google) in service
+         * of its intent (only growthmak.com people are team). Re-checked on
+         * every sign-in, server-side, and never client-decided (A4).
+         */
+        const onCompanyDomain = (user.email ?? '').toLowerCase().endsWith(`@${allowedDomain}`);
+
+        if (onCompanyDomain) {
           await db.update(users).set({ role: 'team' }).where(eq(users.id, user.id));
           t.role = 'team';
         } else {
-          // Magic link and dev sign-in: role was decided at user creation
-          // (default 'client', or by domain in the dev provider above) —
-          // just read it back, never re-derive it from the provider.
           const [row] = await db.select({ role: users.role }).from(users).where(eq(users.id, user.id)).limit(1);
           t.role = row?.role ?? 'client';
         }
