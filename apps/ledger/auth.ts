@@ -9,6 +9,9 @@ import Nodemailer from 'next-auth/providers/nodemailer';
 const isProd = process.env.NODE_ENV === 'production';
 const allowedDomain = process.env.AUTH_ALLOWED_DOMAIN ?? 'growthmak.com';
 
+/** Single source for the magic-link lifetime, so the email copy cannot drift from the real expiry. */
+const ttlMinutes = Number(process.env.MAGIC_LINK_TTL_MINUTES ?? 60);
+
 /**
  * Whether Google Workspace SSO is usable at all. Auth.js validates every
  * registered provider on any request to /api/auth/*, so a Google provider
@@ -48,7 +51,21 @@ const providers: NextAuthConfig['providers'] = [
         }
       : { jsonTransport: true },
     from: process.env.AUTH_EMAIL_FROM ?? 'Change Ledger <ledger@growthmak.com>',
-    maxAge: 15 * 60, // 15-minute expiry, single-use — enforced by the adapter deleting the token on use (A6)
+    /**
+     * How long a magic link stays valid. The PRD specifies 15 minutes (A6),
+     * and in practice that proved too tight: between Zoho's delivery time
+     * and someone finishing what they were doing before opening the mail,
+     * links were expiring unused — the verification_tokens rows were still
+     * present and unconsumed, just past their expiry. A dead link on arrival
+     * is its own security problem, because it trains people to request three
+     * in a row and click whichever arrives.
+     *
+     * Default is an hour; set MAGIC_LINK_TTL_MINUTES to tune it without a
+     * code change, back to 15 if you want the letter of A6. Single-use is
+     * unchanged and is the stronger property of the two — the adapter
+     * deletes the token the moment it is redeemed.
+     */
+    maxAge: ttlMinutes * 60,
     async sendVerificationRequest({ identifier: email, url, provider }) {
       if (!smtpConfigured) {
         // No mail server configured: print the link so the flow is still
@@ -64,8 +81,8 @@ const providers: NextAuthConfig['providers'] = [
         to: email,
         from: provider.from,
         subject: 'Sign in to Change Ledger',
-        text: `Sign in by opening this link:\n${url}\n\nIt expires in 15 minutes and works once.`,
-        html: `<p>Sign in by opening this link:</p><p><a href="${url}">${url}</a></p><p>This link expires in 15 minutes and works once.</p>`,
+        text: `Sign in by opening this link:\n${url}\n\nIt expires in ${ttlMinutes} minutes and works once.`,
+        html: `<p>Sign in by opening this link:</p><p><a href="${url}">${url}</a></p><p>This link expires in ${ttlMinutes} minutes and works once.</p>`,
       });
     },
   }),
