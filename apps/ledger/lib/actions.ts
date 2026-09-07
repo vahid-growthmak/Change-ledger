@@ -15,6 +15,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireSession, requireTeam } from './authz';
 import { keyBelongsToProject } from './storage';
+import { appOrigin } from './app-url';
 
 /** Shape of the metadata our own upload route returns, re-checked on the way in. */
 const attachmentMetaSchema = z
@@ -276,35 +277,55 @@ export async function inviteMember(projectId: string, rawEmail: string) {
 
   // Same SMTP setup the magic link uses, so there's one mail configuration
   // rather than two. Best-effort throughout: the membership is already
-  // written, and a failed courtesy email must not undo it.
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-    try {
-      const nodemailer = await import('nodemailer');
-      const port = Number(process.env.SMTP_PORT ?? 465);
-      const transport = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port,
-        secure: port === 465,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
-      });
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3457';
-      await transport.sendMail({
-        from: process.env.AUTH_EMAIL_FROM ?? 'Change Ledger <ledger@growthmak.com>',
-        to: email,
-        subject: `You've been added to ${project.projectName}`,
-        text: `Growthmak added you to the Change Ledger for ${project.projectName}. Sign in at ${appUrl}/login with this email address to view it.`,
-        html: `<p>Growthmak added you to the Change Ledger for <strong>${project.projectName}</strong>.</p><p><a href="${appUrl}/login">Sign in</a> with this email address to view it.</p>`,
-      });
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('inviteMember: failed to send invite email', err);
-    }
-  } else {
+  // written, and a failed courtesy email must not undo it — but the caller
+  // is told whether the email actually went, so the UI can stop claiming
+  // someone was emailed when they weren't.
+  const origin = appOrigin();
+  const smtpReady = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+
+  if (!origin) {
+    // eslint-disable-next-line no-console
+    console.error(
+      'inviteMember: no absolute app origin available (set AUTH_URL or NEXT_PUBLIC_APP_URL) — invite email skipped rather than sending a hostless link.',
+    );
+    revalidatePath(`/${project.slug}/settings`);
+    return { emailed: false, reason: 'The server has no app URL configured, so no email was sent.' };
+  }
+
+  if (!smtpReady) {
     // eslint-disable-next-line no-console
     console.log(`\nInvited ${email} to ${project.slug} — no SMTP configured, no email sent.\n`);
+    revalidatePath(`/${project.slug}/settings`);
+    return { emailed: false, reason: 'Email is not configured on the server, so no invite was sent.' };
+  }
+
+  let emailed = false;
+  let reason: string | undefined;
+  try {
+    const nodemailer = await import('nodemailer');
+    const port = Number(process.env.SMTP_PORT ?? 465);
+    const transport = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+    });
+    await transport.sendMail({
+      from: process.env.AUTH_EMAIL_FROM ?? 'Change Ledger <ledger@growthmak.com>',
+      to: email,
+      subject: `You've been added to ${project.projectName}`,
+      text: `Growthmak added you to the Change Ledger for ${project.projectName}. Sign in at ${origin}/login with this email address to view it.`,
+      html: `<p>Growthmak added you to the Change Ledger for <strong>${project.projectName}</strong>.</p><p><a href="${origin}/login">Sign in</a> with this email address to view it.</p>`,
+    });
+    emailed = true;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('inviteMember: failed to send invite email', err);
+    reason = 'They were added, but the invite email could not be sent.';
   }
 
   revalidatePath(`/${project.slug}/settings`);
+  return { emailed, reason };
 }
 
 /** Team only. Soft-deletes the project without touching its request history. */

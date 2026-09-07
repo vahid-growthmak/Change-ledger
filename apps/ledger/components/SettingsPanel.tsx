@@ -139,8 +139,14 @@ function InviteForm({ projectId }: { projectId: string }) {
     setInvited(null);
     startTransition(async () => {
       try {
-        await inviteMember(projectId, email);
-        setInvited(email);
+        const result = await inviteMember(projectId, email);
+        // Say what actually happened: they always get access, but the email
+        // is a separate thing that can fail on its own.
+        setInvited(
+          result?.emailed
+            ? `Invited ${email} — sign-in link sent.`
+            : `${email} now has access. ${result?.reason ?? 'No invite email was sent.'} Send them the link yourself.`,
+        );
         setEmail('');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not send the invite.');
@@ -175,8 +181,8 @@ function InviteForm({ projectId }: { projectId: string }) {
         </Button>
       </form>
       {invited ? (
-        <p className="font-mono text-clear mt-3" style={{ fontSize: 12 }}>
-          Invited {invited}
+        <p className="font-sans text-clear mt-3" style={{ fontSize: 13, lineHeight: 1.5 }}>
+          {invited}
         </p>
       ) : null}
     </section>
