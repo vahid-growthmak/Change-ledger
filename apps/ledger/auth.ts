@@ -121,7 +121,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // verification tokens and for persisting Google-linked accounts.
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   providers,
-  pages: { signIn: '/login', verifyRequest: '/login/check-email' },
+  // error -> /login so a misconfiguration lands on our own page with an
+  // explanation, rather than Auth.js's bare "Server error" panel that only
+  // says to check the logs. /login reads the ?error= param and renders a
+  // message; it never calls auth() itself, so this cannot loop.
+  pages: { signIn: '/login', verifyRequest: '/login/check-email', error: '/login' },
   // In production Auth.js refuses to infer its own origin from the Host
   // header unless told to, and every sign-in fails with UntrustedHost.
   // Set AUTH_URL to the canonical origin (https://ledger.growthmak.com) and

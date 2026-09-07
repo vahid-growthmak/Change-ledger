@@ -2,6 +2,12 @@ import { googleConfigured } from '@/auth';
 import { signInWithDev, signInWithGoogle, signInWithMagicLink } from './actions';
 
 const ERROR_MESSAGES: Record<string, string> = {
+  // Auth.js raises this when its own config can't be built at all — in
+  // practice a missing AUTH_SECRET, or a provider registered without its
+  // credentials. Naming the likely cause beats "check the server logs",
+  // which is all the default error page offers.
+  Configuration:
+    'Sign-in is not configured on the server. AUTH_SECRET is most likely missing from the deployment environment — the server log names the exact cause.',
   AccessDenied: `That Google account isn't on the growthmak.com workspace — team sign-in is restricted to it. Clients should use the email link instead.`,
   Verification: 'That link has expired or was already used. Request a new one below.',
   Default: 'Could not sign in. Check your connection, then try again.',
