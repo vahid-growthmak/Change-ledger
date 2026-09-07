@@ -274,25 +274,34 @@ export async function inviteMember(projectId: string, rawEmail: string) {
     await db.insert(projectMembers).values({ projectId, userId: user.id });
   }
 
-  if (process.env.RESEND_API_KEY) {
+  // Same SMTP setup the magic link uses, so there's one mail configuration
+  // rather than two. Best-effort throughout: the membership is already
+  // written, and a failed courtesy email must not undo it.
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
     try {
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
+      const nodemailer = await import('nodemailer');
+      const port = Number(process.env.SMTP_PORT ?? 465);
+      const transport = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port,
+        secure: port === 465,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+      });
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3457';
-      await resend.emails.send({
+      await transport.sendMail({
         from: process.env.AUTH_EMAIL_FROM ?? 'Change Ledger <ledger@growthmak.com>',
         to: email,
         subject: `You've been added to ${project.projectName}`,
+        text: `Growthmak added you to the Change Ledger for ${project.projectName}. Sign in at ${appUrl}/login with this email address to view it.`,
         html: `<p>Growthmak added you to the Change Ledger for <strong>${project.projectName}</strong>.</p><p><a href="${appUrl}/login">Sign in</a> with this email address to view it.</p>`,
       });
     } catch (err) {
-      // Best-effort — the membership already exists even if the email fails.
       // eslint-disable-next-line no-console
       console.error('inviteMember: failed to send invite email', err);
     }
   } else {
     // eslint-disable-next-line no-console
-    console.log(`\nInvited ${email} to ${project.slug} — no RESEND_API_KEY set, no email sent.\n`);
+    console.log(`\nInvited ${email} to ${project.slug} — no SMTP configured, no email sent.\n`);
   }
 
   revalidatePath(`/${project.slug}/settings`);

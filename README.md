@@ -52,11 +52,21 @@ Google Workspace app or a Resend account:
   no rate, no settings link. That boundary is enforced server-side (`lib/authz.ts`), not by a
   client-side view toggle.
 
-The real providers (Google Workspace SSO restricted to `AUTH_ALLOWED_DOMAIN`, Resend magic
-links) are fully wired in `auth.ts` — set the corresponding vars in `apps/ledger/.env.local`
-(see `.env.example`) to use them instead. Without `RESEND_API_KEY`, magic links print to the
-server console instead of sending an email, so the real (non-dev) sign-in flow is still
-testable end-to-end.
+The real providers are wired in `auth.ts`: Google Workspace SSO (restricted to
+`AUTH_ALLOWED_DOMAIN`) and magic-link email over plain SMTP. Set the corresponding vars in
+`apps/ledger/.env.local` (see `.env.example`) to use them.
+
+SMTP rather than a specific vendor's SDK, so it works with whatever the company already pays
+for — Zoho Mail (`smtp.zoho.com:465`), Zoho ZeptoMail (`smtp.zeptomail.com:465`), Google
+Workspace, or anything else. Without `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD`, magic links
+print to the server log instead of sending, so the real (non-dev) sign-in flow stays testable
+end-to-end with no email account at all.
+
+**Each provider is registered only when it is configured.** Auth.js validates every
+registered provider on any request to `/api/auth/*`, so one provider missing its credentials
+returns a Configuration error for the whole handler — a deployment with no Google client
+would lose email sign-in too, and show a bare "Server error". Google is added only when both
+its variables are present, and the login page hides the button when they aren't.
 
 ## Attachments
 

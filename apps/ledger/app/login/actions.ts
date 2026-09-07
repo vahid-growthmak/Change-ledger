@@ -14,7 +14,7 @@ export async function signInWithMagicLink(formData: FormData) {
   // just clicked the link onto a screen telling them to check their email.
   // Home resolves to their own project. The "check your email" screen is
   // configured as pages.verifyRequest in auth.ts instead.
-  await signIn('resend', { email, redirectTo: '/' });
+  await signIn('nodemailer', { email, redirectTo: '/' });
 }
 
 export async function signInWithDev(formData: FormData) {

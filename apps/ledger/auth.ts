@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
-import Resend from 'next-auth/providers/resend';
+import Nodemailer from 'next-auth/providers/nodemailer';
 
 const isProd = process.env.NODE_ENV === 'production';
 const allowedDomain = process.env.AUTH_ALLOWED_DOMAIN ?? 'growthmak.com';
@@ -22,28 +22,51 @@ export const googleConfigured = Boolean(
   process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
 );
 
+/**
+ * SMTP rather than a specific email vendor's SDK, so this works with
+ * whatever the company already pays for — Zoho Mail, Zoho ZeptoMail, Google
+ * Workspace, Resend's SMTP bridge, anything. Set SMTP_HOST/PORT/USER/PASS
+ * and it sends; leave them unset and the magic link prints to the server
+ * log instead, which keeps local development working with no account at all.
+ */
+const smtpConfigured = Boolean(
+  process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD,
+);
+
 const providers: NextAuthConfig['providers'] = [
-  Resend({
-    apiKey: process.env.RESEND_API_KEY ?? '',
+  Nodemailer({
+    // Only built when actually configured — nodemailer would otherwise try
+    // to connect on send and fail with a transport error rather than the
+    // clear fallback below.
+    server: smtpConfigured
+      ? {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT ?? 465),
+          // 465 is implicit TLS; 587 upgrades with STARTTLS.
+          secure: Number(process.env.SMTP_PORT ?? 465) === 465,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+        }
+      : { jsonTransport: true },
     from: process.env.AUTH_EMAIL_FROM ?? 'Change Ledger <ledger@growthmak.com>',
     maxAge: 15 * 60, // 15-minute expiry, single-use — enforced by the adapter deleting the token on use (A6)
     async sendVerificationRequest({ identifier: email, url, provider }) {
-      if (!process.env.RESEND_API_KEY) {
-        // No email service configured: print the link so the flow is
-        // still testable end-to-end without a live Resend account.
+      if (!smtpConfigured) {
+        // No mail server configured: print the link so the flow is still
+        // usable end-to-end without an email account.
         // eslint-disable-next-line no-console
         console.log(`\nMagic link for ${email}:\n${url}\n`);
         return;
       }
-      const { Resend: ResendClient } = await import('resend');
-      const resend = new ResendClient(process.env.RESEND_API_KEY);
-      const { error } = await resend.emails.send({
-        from: provider.from as string,
+
+      const nodemailer = await import('nodemailer');
+      const transport = nodemailer.createTransport(provider.server);
+      await transport.sendMail({
         to: email,
+        from: provider.from,
         subject: 'Sign in to Change Ledger',
+        text: `Sign in by opening this link:\n${url}\n\nIt expires in 15 minutes and works once.`,
         html: `<p>Sign in by opening this link:</p><p><a href="${url}">${url}</a></p><p>This link expires in 15 minutes and works once.</p>`,
       });
-      if (error) throw new Error(`Resend error: ${error.message}`);
     },
   }),
 ];
