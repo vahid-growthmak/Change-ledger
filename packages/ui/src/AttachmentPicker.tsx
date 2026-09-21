@@ -1,6 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import {
+  ALLOWED_ATTACHMENT_TYPES,
+  MAX_ATTACHMENT_BYTES,
+  MAX_ATTACHMENT_MB,
+  readableSize,
+} from '@growthmak/core';
 import { Button } from './primitives';
 import { FieldLabel, InlineError } from './fields';
 
@@ -19,14 +25,7 @@ interface AttachmentPickerProps {
   disabled?: boolean;
 }
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const ACCEPTED = 'image/png,image/jpeg,image/gif,image/webp,application/pdf';
-
-function readableSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
+const ACCEPTED = ALLOWED_ATTACHMENT_TYPES.join(',');
 
 /**
  * Attach screenshots and PDFs to a request (C8).
@@ -35,8 +34,9 @@ function readableSize(bytes: number): string {
  * screenshot the thing that "removes the last real reason to use WhatsApp
  * instead", so a client who just hit Cmd+Shift+4 can paste straight in.
  *
- * The size and type checks here are for immediate feedback only — the server
- * enforces the real limits.
+ * The size and type checks here are for immediate feedback only — the signed
+ * upload form enforces the real limits at the bucket, where the browser can't
+ * argue with them.
  */
 export function AttachmentPicker({ onUpload, attachments, onChange, disabled }: AttachmentPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,8 +66,10 @@ export function AttachmentPicker({ onUpload, attachments, onChange, disabled }: 
     setError(null);
 
     for (const file of files) {
-      if (file.size > MAX_BYTES) {
-        setError(`"${file.name || 'That file'}" is over the 10MB limit.`);
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        setError(
+          `"${file.name || 'That file'}" is ${readableSize(file.size)} — over the ${MAX_ATTACHMENT_MB}MB limit.`,
+        );
         continue;
       }
       setBusy((n) => n + 1);
@@ -114,7 +116,7 @@ export function AttachmentPicker({ onUpload, attachments, onChange, disabled }: 
           {busy > 0 ? `Attaching ${busy}…` : 'Attach a file'}
         </Button>
         <span className="font-sans text-mute" style={{ fontSize: 12 }}>
-          or paste a screenshot · images and PDFs, up to 10MB
+          or paste a screenshot · images and PDFs, up to {MAX_ATTACHMENT_MB}MB
         </span>
       </div>
 

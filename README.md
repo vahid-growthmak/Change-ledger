@@ -88,6 +88,30 @@ backend and one credential system; swapping is a one-line adapter change in `lib
 Provision the bucket with `neon deploy` (declared in the repo-root `neon.ts`) and copy the
 four `AWS_*` variables it writes into `apps/ledger/.env.local`.
 
+**Uploads go browser → bucket, never through the app.** A Vercel serverless function refuses
+a request body over 4.5MB, so proxying the bytes capped attachments well below the 10MB the
+UI used to advertise — a 7MB screenshot failed at the platform edge, before any of our own
+error handling ran. `/[slug]/attachments/sign` checks project membership and mints a signed,
+single-key POST form; the browser posts the file straight to Neon;
+`/[slug]/attachments/confirm` reads back what landed and returns the metadata stored against
+the request. The limits are still enforced server-side — `maxSize` becomes a
+`content-length-range` condition in the form's policy and the content type is bound into the
+signature, so storage does the rejecting and the browser cannot argue with it. The cap lives
+in one place, `packages/core/src/attachments.ts`, which both the picker and the routes read.
+
+Because the browser now talks to the bucket directly, the bucket's CORS rule matters. Neon
+provisions buckets with a permissive one (`AllowedOrigins: ["*"]`), so uploads work as soon
+as the bucket exists — there is no setup step to forget. If you'd rather narrow it to the
+origins that actually need it, `npm run storage:cors` does that:
+
+```bash
+npm run storage:cors -w @growthmak/ledger -- https://ledger.growthmak.com
+```
+
+It **replaces** the existing rule rather than adding to it, so pass every origin that uploads
+— localhost is always included. Miss one and uploads from it start failing, which is the
+only reason this isn't run by default.
+
 ## What the client sees
 
 The client surface carries **no effort or money figures** — no hours, no additional cost, no

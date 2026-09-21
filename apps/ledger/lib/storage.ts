@@ -1,7 +1,8 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
-import { Files } from 'files-sdk';
+import { Files, type SignedUpload } from 'files-sdk';
 import { neon } from 'files-sdk/neon';
+import { MAX_ATTACHMENT_BYTES } from '@growthmak/core';
 
 /**
  * Attachments (C8) live in a private Neon Object Storage bucket that branches
@@ -13,20 +14,20 @@ import { neon } from 'files-sdk/neon';
  * The PRD specified Vercel Blob, written before Neon was in the stack. This
  * keeps it to one backend, one bill, and one credential system; swapping is a
  * one-line adapter change (`files-sdk/vercel-blob`) if that changes again.
+ *
+ * Bytes go browser → bucket, never through this app. A Vercel serverless
+ * function caps its request body at 4.5MB, so proxying the upload put a
+ * ceiling on attachments that no constant here could lift. The signed POST
+ * form below carries the size and type limits into the bucket's own policy,
+ * which is what enforces them — see `signAttachmentUpload`.
  */
 
 const BUCKET = 'attachments';
 
-/** "A change request is not a file transfer" — PRD Constraints. */
-export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+/** How long a signed upload form stays usable. Long enough for a slow connection to finish 25MB. */
+const UPLOAD_WINDOW_SECONDS = 15 * 60;
 
-export const ALLOWED_ATTACHMENT_TYPES = [
-  'image/png',
-  'image/jpeg',
-  'image/gif',
-  'image/webp',
-  'application/pdf',
-] as const;
+export { MAX_ATTACHMENT_BYTES, ALLOWED_ATTACHMENT_TYPES, isAllowedAttachmentType } from '@growthmak/core';
 
 export interface AttachmentMeta {
   key: string;
@@ -44,31 +45,53 @@ function client() {
   return new Files({ adapter: neon({ bucket: BUCKET }) });
 }
 
-export function isAllowedAttachmentType(contentType: string): boolean {
-  return (ALLOWED_ATTACHMENT_TYPES as readonly string[]).includes(contentType);
+/**
+ * Mints a one-file, one-use upload form for the browser to post straight at
+ * the bucket.
+ *
+ * The limits are not advisory. `maxSize` becomes a `content-length-range`
+ * condition in the POST policy and `contentType` is bound into the signature,
+ * so S3 rejects an oversized or mistyped body itself — the browser cannot talk
+ * its way past either, and neither can anyone who gets hold of the form. The
+ * default `minSize` of 1 rejects an empty upload, which the old proxy route
+ * had to check by hand.
+ *
+ * Keys are namespaced by project and randomised, never derived from the
+ * uploaded filename: a client-supplied name must not be able to steer where
+ * the object lands or collide with another project's file. The signature
+ * covers this exact key, so the form cannot be redirected at another object.
+ */
+export async function signAttachmentUpload(
+  projectId: string,
+  contentType: string,
+): Promise<{ key: string; upload: SignedUpload }> {
+  const extension = contentType === 'application/pdf' ? 'pdf' : contentType.split('/')[1] || 'bin';
+  const key = `${projectId}/${randomUUID()}.${extension}`;
+
+  const upload = await client().signedUploadUrl(key, {
+    expiresIn: UPLOAD_WINDOW_SECONDS,
+    contentType,
+    maxSize: MAX_ATTACHMENT_BYTES,
+  });
+
+  return { key, upload };
 }
 
 /**
- * Keys are namespaced by project and randomised, never derived from the
- * uploaded filename: a client-supplied name must not be able to steer where
- * the object lands or collide with another project's file.
+ * Reads back what actually landed in the bucket.
+ *
+ * The size and type recorded against a request come from here, not from what
+ * the browser claimed — the browser is the one party in this flow we never
+ * had to trust, and now don't have to. Returns null when there is no object,
+ * which is how the confirm route tells a failed upload from a finished one.
  */
-export async function putAttachment(
-  projectId: string,
-  file: { name: string; type: string; size: number; bytes: Buffer },
-): Promise<AttachmentMeta> {
-  const extension = file.type === 'application/pdf' ? 'pdf' : file.type.split('/')[1] || 'bin';
-  const key = `${projectId}/${randomUUID()}.${extension}`;
-
-  await client().upload(key, file.bytes, { contentType: file.type });
-
-  return {
-    key,
-    // Kept only for display. Truncated, and never used to build the key.
-    name: file.name.slice(0, 120),
-    contentType: file.type,
-    size: file.size,
-  };
+export async function statAttachment(key: string): Promise<{ contentType: string; size: number } | null> {
+  try {
+    const file = await client().head(key);
+    return { contentType: file.type, size: file.size };
+  } catch {
+    return null;
+  }
 }
 
 /** Short-lived presigned GET, handed out only after the caller's project access is checked. */

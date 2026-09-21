@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start -p 3457",
     "lint": "next lint",
-    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts"
+    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
+    "storage:cors": "tsx --env-file-if-exists=.env.local scripts/bucket-cors.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
     "@aws-sdk/client-s3": "^3.1125.0",
+    "@aws-sdk/s3-presigned-post": "^3.1136.0",
     "@aws-sdk/s3-request-presigner": "^3.1125.0",
     "@growthmak/core": "*",
     "@growthmak/db": "*",

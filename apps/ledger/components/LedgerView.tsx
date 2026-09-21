@@ -7,6 +7,7 @@ import {
   formatMoneyMinor,
   GROWTH_LAYER_LABELS,
   hoursUnit,
+  MAX_ATTACHMENT_MB,
   meterScale,
   PENDING_LABEL,
   REQUEST_TYPES,
@@ -18,6 +19,7 @@ import {
   type LedgerTotals,
   type ProjectConfig,
   type RequestType,
+  type SignedUpload,
   type TriagePatch,
 } from '@growthmak/core';
 import {
@@ -92,19 +94,63 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
     showToast('Logged');
   }
 
+  async function readError(response: Response, fallback: string): Promise<string> {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    return payload?.error ?? fallback;
+  }
+
   /**
-   * Uploads through our own route rather than a presigned PUT straight to
-   * storage, so size and type are enforced server-side by code we control.
+   * Uploads a file straight to the bucket, in three steps: ask our server to
+   * sign a one-file form, post the bytes to storage with it, then have the
+   * server read back what landed.
+   *
+   * The bytes deliberately do not pass through the app. A Vercel serverless
+   * function refuses a request body over 4.5MB, which capped attachments well
+   * below the limit the UI advertised. Size and type are still enforced
+   * server-side — they are baked into the signed form's policy, so storage
+   * itself does the rejecting.
    */
   async function handleUpload(file: File): Promise<AttachmentMeta> {
-    const body = new FormData();
-    body.append('file', file);
-    const response = await fetch(`/${slug}/attachments`, { method: 'POST', body });
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(payload?.error ?? 'Could not attach that file.');
+    const signed = await fetch(`/${slug}/attachments/sign`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contentType: file.type, size: file.size }),
+    });
+    if (!signed.ok) throw new Error(await readError(signed, 'Could not attach that file.'));
+    const { key, upload } = (await signed.json()) as { key: string; upload: SignedUpload };
+
+    let stored: Response;
+    try {
+      if (upload.method === 'POST') {
+        const form = new FormData();
+        // The policy fields have to precede the file: S3 stops reading the
+        // multipart body at `file` and ignores anything after it.
+        for (const [name, value] of Object.entries(upload.fields)) form.append(name, value);
+        form.append('file', file);
+        stored = await fetch(upload.url, { method: 'POST', body: form });
+      } else {
+        stored = await fetch(upload.url, { method: 'PUT', headers: upload.headers, body: file });
+      }
+    } catch {
+      // A cross-origin failure lands here with nothing readable attached, so
+      // this covers a dropped connection and a missing bucket CORS rule alike.
+      throw new Error('Could not reach storage. Check your connection, then try again.');
     }
-    return (await response.json()) as AttachmentMeta;
+    if (!stored.ok) {
+      throw new Error(
+        stored.status === 403
+          ? `That file is over the ${MAX_ATTACHMENT_MB}MB limit.`
+          : 'Could not store that file. Nothing was attached; try again.',
+      );
+    }
+
+    const confirmed = await fetch(`/${slug}/attachments/confirm`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ key, name: file.name || 'attachment' }),
+    });
+    if (!confirmed.ok) throw new Error(await readError(confirmed, 'Could not attach that file.'));
+    return (await confirmed.json()) as AttachmentMeta;
   }
 
   function handleTriage(id: string, patch: TriagePatch) {
