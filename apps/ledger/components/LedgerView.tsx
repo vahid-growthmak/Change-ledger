@@ -32,6 +32,8 @@ import {
   ReadoutCell,
   ReadoutRow,
   RequestCard,
+  Sheet,
+  SheetHead,
   Select,
   SubmitForm,
   TextInput,
@@ -214,7 +216,9 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
           exists where hours and the contracted line do. Without them there is
           no scale and no reference — a bar with neither would say nothing. */}
       {readout.kind === 'team' ? (
-        <section className="bg-card border border-rule shadow-card rounded-panel px-6 pt-6 pb-5" aria-label="Hours against agreement">
+        <Sheet>
+          <SheetHead>Hours against agreement</SheetHead>
+          <section className="px-5 pt-7 pb-5" aria-label="Hours against agreement">
           <Meter
             contractedHours={readout.contractedHours}
             inScopeHours={readout.totals.inScopeHours}
@@ -230,11 +234,12 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
           />
           <MeterLegend pendingNote="Pending review — not yet counted either way" />
           {project.mode === 'retainer' ? (
-            <p className="font-sans text-mute mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
+            <p className="font-sans text-pencil mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
               The meter counts {periodLabel}. It resets each cycle; the full history stays in the list below.
             </p>
           ) : null}
-        </section>
+          </section>
+        </Sheet>
       ) : null}
 
       <SubmitForm onSubmit={handleCreate} onUploadAttachment={handleUpload} />
@@ -245,7 +250,7 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
 
       {optimisticRequests.length > 0 ? (
         <section aria-label="Filters" className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center">
             <FilterChip pressed={filter === 'all'} onClick={() => setFilter('all')}>
               All
             </FilterChip>
@@ -258,9 +263,11 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
             <FilterChip pressed={filter === 'open'} onClick={() => setFilter('open')}>
               Still open
             </FilterChip>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:flex-none sm:flex-nowrap sm:ml-auto">
             <Select
               aria-label="Kind of change"
-              className="sm:ml-2"
+              className="flex-1 min-w-0 sm:flex-none"
               style={{ maxWidth: 180 }}
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as '' | RequestType)}
@@ -272,19 +279,31 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
                 </option>
               ))}
             </Select>
+            <TextInput
+              aria-label="Search requests"
+              placeholder="Search the log"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 min-w-0 sm:flex-none"
+              style={{ maxWidth: 240 }}
+            />
           </div>
-          <TextInput
-            aria-label="Search requests"
-            placeholder="Search the log"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-auto"
-            style={{ maxWidth: 240 }}
-          />
         </section>
       ) : null}
 
-      <section aria-label="Change requests" className="grid gap-3">
+      <Sheet>
+        <SheetHead
+          right={
+            <span className="font-mono text-pencil tabular" style={{ fontSize: 11 }}>
+              {filtered.length === optimisticRequests.length
+                ? `${optimisticRequests.length}`
+                : `${filtered.length} / ${optimisticRequests.length}`}
+            </span>
+          }
+        >
+          The log
+        </SheetHead>
+        <section aria-label="Change requests" className="divide-y divide-rule">
         {optimisticRequests.length === 0 ? (
           <EmptyState>
             No changes logged yet. Every time something new is asked for, add it here. That&apos;s how
@@ -343,7 +362,8 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
             );
           })
         )}
-      </section>
+        </section>
+      </Sheet>
 
       {role === 'team' ? <Distribution requests={optimisticRequests} /> : null}
 

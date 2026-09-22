@@ -115,7 +115,7 @@ export function AttachmentPicker({ onUpload, attachments, onChange, disabled }: 
         >
           {busy > 0 ? `Attaching ${busy}…` : 'Attach a file'}
         </Button>
-        <span className="font-sans text-mute" style={{ fontSize: 12 }}>
+        <span className="font-sans text-pencil" style={{ fontSize: 12 }}>
           or paste a screenshot · images and PDFs, up to {MAX_ATTACHMENT_MB}MB
         </span>
       </div>
@@ -127,17 +127,17 @@ export function AttachmentPicker({ onUpload, attachments, onChange, disabled }: 
           {attachments.map((a) => (
             <li
               key={a.key}
-              className="flex items-center justify-between gap-3 border border-rule rounded-inline px-3 py-2"
+              className="flex items-center justify-between gap-3 border border-rule rounded-sm px-3 py-2"
             >
               <span className="font-mono text-ink truncate" style={{ fontSize: '10.5px' }}>
                 {a.name}
-                <span className="text-mute"> · {readableSize(a.size)}</span>
+                <span className="text-pencil"> · {readableSize(a.size)}</span>
               </span>
               <button
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(attachments.filter((x) => x.key !== a.key))}
-                className="font-mono text-mute underline shrink-0"
+                className="font-mono text-pencil underline shrink-0"
                 style={{ fontSize: 10.5 }}
               >
                 Remove

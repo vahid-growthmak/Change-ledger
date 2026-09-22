@@ -6,7 +6,7 @@ export interface RequestCardProps {
   title: string;
   tone: ScopeTone;
   scopeLabel: string;
-  /** Mono metadata line: type, layer, hours, status. */
+  /** Metadata line: type, layer, hours, status. */
   meta: React.ReactNode;
   detail?: string | null;
   link?: string | null;
@@ -24,17 +24,20 @@ export interface RequestCardProps {
   timestamps: string;
   /** Done / Won't do drop to 55% opacity — the count stays visibly intact. */
   dimmed?: boolean;
-  /** Triage row, rendered below a dashed divider in the Growthmak view only. */
+  /** Triage row, rendered below a rule in the Growthmak view only. */
   triageSlot?: React.ReactNode;
 }
 
-const edgeColors: Record<ScopeTone, string> = {
-  clear: 'var(--clear)',
-  over: 'var(--over)',
-  signal: 'var(--signal)',
-  pending: 'var(--hatch-dark)',
-};
-
+/**
+ * One entry in the manifest.
+ *
+ * Not a card: entries tile hairline to hairline and the log's own rules divide
+ * them, so a hundred requests read as one document rather than a hundred
+ * floating objects. The reference is the headline — it is what a client quotes
+ * on a call — and the verdict is stamped to its right. The verdict's ink
+ * appears only inside that stamp; an entry never wears a coloured edge,
+ * because the written label is what has to carry the meaning.
+ */
 export function RequestCard({
   refId,
   title,
@@ -51,92 +54,98 @@ export function RequestCard({
 }: RequestCardProps) {
   return (
     <article
-      className="bg-card border border-rule rounded-card shadow-card px-5 py-4"
-      style={{
-        borderLeft: `3px solid ${edgeColors[tone]}`,
-        opacity: dimmed ? 0.55 : 1,
-        animation: 'card-rise 300ms ease',
-      }}
+      className="px-4 py-4 sm:px-5 transition-colors duration-150 hover:bg-stock-2/40"
+      style={{ opacity: dimmed ? 0.55 : 1, animation: 'entry-file 220ms var(--ease-stamp) both' }}
     >
-      <div className="flex items-baseline gap-3">
-        <span className="font-mono text-mute" style={{ fontSize: '10.5px', letterSpacing: '0.05em' }}>
-          {refId}
-        </span>
-        <h3 className="font-sans text-ink flex-1 min-w-0" style={{ fontSize: '14.5px', fontWeight: 500, lineHeight: 1.4 }}>
-          {title}
-        </h3>
-        <Tag tone={tone}>{scopeLabel}</Tag>
-      </div>
-      <div
-        className="font-mono text-mute mt-2"
-        style={{ fontSize: '10.5px', letterSpacing: '0.05em', lineHeight: 1.7 }}
-      >
-        {meta}
-      </div>
-      {detail ? (
-        <p className="font-sans text-ink mt-2" style={{ fontSize: 13, lineHeight: 1.55 }}>
-          {detail}
-        </p>
-      ) : null}
-      {sourceQuote ? (
-        <blockquote
-          className="font-sans text-mute border-l-2 border-rule pl-3 mt-2"
-          style={{ fontSize: 13, lineHeight: 1.55 }}
-        >
-          {sourceQuote}
-        </blockquote>
-      ) : null}
-      {attachments && attachments.length > 0 ? (
-        <div className="flex flex-wrap items-start gap-2 mt-3">
-          {attachments.map((a) =>
-            a.contentType.startsWith('image/') ? (
-              <a
-                key={a.key}
-                href={a.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={a.name}
-                className="block border border-rule rounded-inline overflow-hidden"
-                style={{ width: 96, height: 96 }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={a.url}
-                  alt={a.name}
-                  loading="lazy"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              </a>
-            ) : (
-              <a
-                key={a.key}
-                href={a.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center border border-rule rounded-inline px-3 py-2 font-mono text-ink hover:border-signal"
-                style={{ fontSize: '10.5px' }}
-              >
-                {a.name}
-              </a>
-            ),
-          )}
+      <div className="grid gap-x-4 gap-y-2" style={{ gridTemplateColumns: 'minmax(0,1fr)' }}>
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+          {/* The number as headline: machine-assigned, so Courier, and set at
+              the scale of the thing people actually refer to. */}
+          <span
+            className="font-mono text-ink tabular shrink-0 text-ref"
+            style={{ letterSpacing: '-0.01em' }}
+          >
+            {refId}
+          </span>
+          <div className="flex-1 min-w-[12rem]">
+            <h3 className="font-sans text-ink text-entry max-w-measure" style={{ fontWeight: 500 }}>
+              {title}
+            </h3>
+          </div>
+          <span className="shrink-0">
+            <Tag tone={tone}>{scopeLabel}</Tag>
+          </span>
         </div>
-      ) : null}
-      {link ? (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener nofollow noreferrer"
-          className="text-signal font-sans underline mt-2 inline-block break-all"
-          style={{ fontSize: 13 }}
-        >
-          {link}
-        </a>
-      ) : null}
-      <div className="font-mono text-mute mt-3" style={{ fontSize: 10 }}>
-        {timestamps}
+
+        <div className="font-sans text-pencil text-meta" style={{ lineHeight: 1.7 }}>
+          {meta}
+        </div>
+
+        {detail ? (
+          <p className="font-sans text-ink text-body max-w-measure">{detail}</p>
+        ) : null}
+
+        {sourceQuote ? (
+          <blockquote className="font-sans text-pencil border-l border-rule pl-3 text-body max-w-measure">
+            {sourceQuote}
+          </blockquote>
+        ) : null}
+
+        {attachments && attachments.length > 0 ? (
+          <div className="flex flex-wrap items-start gap-2">
+            {attachments.map((a) =>
+              a.contentType.startsWith('image/') ? (
+                <a
+                  key={a.key}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={a.name}
+                  className="block border border-rule hover:border-ink transition-colors duration-150"
+                  style={{ width: 92, height: 92 }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={a.url}
+                    alt={a.name}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </a>
+              ) : (
+                <a
+                  key={a.key}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center border border-rule px-3 py-2 font-sans text-meta
+                    text-ink hover:border-ink transition-colors duration-150"
+                >
+                  {a.name}
+                </a>
+              ),
+            )}
+          </div>
+        ) : null}
+
+        {link ? (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener nofollow noreferrer"
+            className="text-signal font-sans underline text-meta break-all inline-block"
+          >
+            {link}
+          </a>
+        ) : null}
+
+        {/* Machine-assigned, so Courier. */}
+        <div className="font-mono text-pencil tabular" style={{ fontSize: 11 }}>
+          {timestamps}
+        </div>
       </div>
-      {triageSlot ? <div className="mt-4 pt-4 border-t border-dashed border-rule">{triageSlot}</div> : null}
+
+      {triageSlot ? <div className="mt-4 pt-4 border-t border-rule-soft">{triageSlot}</div> : null}
     </article>
   );
 }

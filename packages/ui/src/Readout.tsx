@@ -9,22 +9,25 @@ export interface ReadoutCellProps {
   breached?: boolean;
 }
 
+/**
+ * One filled box in the manifest's title block.
+ *
+ * Deliberately not the hero-metric arrangement this app used to ship — a 31px
+ * number over a small caption, two of them spending an entire screen band on
+ * two integers. A form states a total at the size it states everything else,
+ * and earns its authority from the ruling around it rather than from scale.
+ */
 export function ReadoutCell({ label, value, unit, breached }: ReadoutCellProps) {
   return (
-    <div className="px-5 py-4 min-w-0">
+    <div className="px-4 py-3 min-w-0">
+      <div className="font-narrow uppercase text-pencil text-label tracking-label">{label}</div>
       <div
-        className="font-mono uppercase text-mute"
-        style={{ fontSize: '9.5px', letterSpacing: '0.13em' }}
-      >
-        {label}
-      </div>
-      <div
-        className={`font-mono mt-1 tabular-nums ${breached ? 'text-over' : 'text-ink'}`}
-        style={{ fontSize: 'clamp(26px, 4vw, 31px)', fontWeight: 500, letterSpacing: '-0.03em', lineHeight: 1.15 }}
+        className={`font-mono mt-1.5 tabular text-figure ${breached ? 'text-over' : 'text-ink'}`}
+        style={{ letterSpacing: '-0.01em' }}
       >
         {value}
         {unit ? (
-          <span className="text-mute" style={{ fontSize: 15, fontWeight: 400, letterSpacing: 0 }}>
+          <span className="text-pencil font-sans" style={{ fontSize: 12 }}>
             {' '}
             {unit}
           </span>
@@ -34,10 +37,16 @@ export function ReadoutCell({ label, value, unit, breached }: ReadoutCellProps) 
   );
 }
 
-/** Four cells in a hairline-divided row. */
+/**
+ * The title block: boxed cells meeting on shared rules, no gaps and no
+ * shadow. One border around the block, hairlines between the cells.
+ */
 export function ReadoutRow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 rounded-panel border border-rule bg-card shadow-card divide-x divide-y sm:divide-y-0 divide-rule overflow-hidden">
+    <div
+      className="grid grid-cols-2 sm:grid-cols-4 border border-rule bg-sheet
+        divide-x divide-y sm:divide-y-0 divide-rule"
+    >
       {children}
     </div>
   );

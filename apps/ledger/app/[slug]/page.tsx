@@ -53,31 +53,36 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     <main className="max-w-page mx-auto px-5 py-8 grid gap-6">
       <div>
         <AppHeader session={session} crumb={project.projectName} />
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <div className="flex flex-wrap items-baseline gap-3">
-            <h1 className="font-sans text-ink" style={{ fontSize: 'clamp(21px, 3vw, 26px)', fontWeight: 600, letterSpacing: '-0.025em' }}>
-              {project.projectName}
-            </h1>
-            <span className="font-sans text-mute" style={{ fontSize: '14.5px' }}>
-              {project.clientName}
-            </span>
-            <span className="font-mono uppercase text-mute" style={{ fontSize: '9.5px', letterSpacing: '0.13em' }}>
-              {project.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
-              {periodLabel ? ` · ${periodLabel}` : ''}
-            </span>
-          </div>
+
+        {/*
+          The title block. A manifest names its document and then states its
+          particulars in ruled boxes — so the project name is the document
+          title, and client, engagement and period are filled fields beneath
+          it rather than a row of grey metadata floating under a heading.
+        */}
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
+          <h1
+            className="font-sans text-ink text-title min-w-0"
+            style={{ fontWeight: 600, letterSpacing: '-0.025em' }}
+          >
+            {project.projectName}
+          </h1>
           {session.role === 'team' ? (
             <div className="flex gap-2">
               <a
                 href={`/${project.slug}/export`}
-                className="inline-flex items-center rounded-btn font-sans font-semibold bg-transparent text-ink border border-rule hover:border-signal hover:text-signal-ink px-4 py-2"
+                className="inline-flex items-center rounded-control font-sans font-semibold bg-transparent
+                  text-ink border border-rule hover:border-ink hover:bg-stock-2 px-4 py-2
+                  transition-colors duration-150"
                 style={{ fontSize: 12, minHeight: 44 }}
               >
                 Export CSV
               </a>
               <a
                 href={`/${project.slug}/settings`}
-                className="inline-flex items-center rounded-btn font-sans font-semibold bg-transparent text-ink border border-rule hover:border-signal hover:text-signal-ink px-4 py-2"
+                className="inline-flex items-center rounded-control font-sans font-semibold bg-transparent
+                  text-ink border border-rule hover:border-ink hover:bg-stock-2 px-4 py-2
+                  transition-colors duration-150"
                 style={{ fontSize: 12, minHeight: 44 }}
               >
                 Settings
@@ -85,6 +90,27 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </div>
           ) : null}
         </div>
+
+        <dl className="grid grid-cols-2 sm:grid-cols-3 border border-rule bg-sheet divide-x divide-y sm:divide-y-0 divide-rule">
+          <div className="px-4 py-3 min-w-0">
+            <dt className="font-narrow uppercase text-pencil text-label tracking-label">Client</dt>
+            <dd className="font-sans text-ink text-body mt-0.5 truncate">{project.clientName}</dd>
+          </div>
+          <div className="px-4 py-3 min-w-0">
+            <dt className="font-narrow uppercase text-pencil text-label tracking-label">Engagement</dt>
+            <dd className="font-sans text-ink text-body mt-0.5 truncate">
+              {project.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
+            </dd>
+          </div>
+          <div className="px-4 py-3 min-w-0">
+            <dt className="font-narrow uppercase text-pencil text-label tracking-label">
+              {periodLabel ? 'Period' : 'Reference'}
+            </dt>
+            <dd className="font-mono text-ink text-body mt-0.5 truncate tabular">
+              {periodLabel ?? project.slug}
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <LedgerView

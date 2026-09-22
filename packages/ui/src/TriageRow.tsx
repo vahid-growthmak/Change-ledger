@@ -18,7 +18,13 @@ interface TriageRowProps {
   onTriage: (patch: TriagePatch) => void;
 }
 
-/** Inline triage: scope, layer, hours, status (T1–T5). Team view only. */
+/**
+ * Inline triage: scope, layer, hours, status (T1–T5). Team view only.
+ *
+ * The four controls sit in one ruled band beneath the entry, the way a form's
+ * office-use block sits under the part the requester filled in. Hours are a
+ * measured value, so they are set in Courier like every other measurement.
+ */
 export function TriageRow({ request, onTriage }: TriageRowProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -70,8 +76,9 @@ export function TriageRow({ request, onTriage }: TriageRowProps) {
               onTriage({ hours: Math.round(n * 2) / 2 });
             }
           }}
-          className="w-full rounded-inline border border-rule bg-paper text-ink font-mono px-2 py-1 focus:outline-none focus:border-signal focus:bg-card"
-          style={{ fontSize: '10.5px', minHeight: 44 }}
+          className="w-full rounded-sm border border-rule bg-sheet text-ink font-mono tabular px-2
+            focus:outline-none focus:border-signal focus:ring-1 focus:ring-signal transition-colors duration-150"
+          style={{ fontSize: 13, minHeight: 44 }}
         />
       </div>
       <div>

@@ -1,30 +1,44 @@
 import { GROWTH_LAYERS, GROWTH_LAYER_LABELS, REQUEST_TYPES, REQUEST_TYPE_LABELS, type ChangeRequest } from '@growthmak/core';
-import { PanelLabel } from './primitives';
+import { Sheet, SheetHead } from './primitives';
 
-function BarBox({ title, rows }: { title: string; rows: { label: string; count: number }[] }) {
+/**
+ * A tally block. Bars are square and set in ink, because this chart answers
+ * "where is the pressure", not "is this good or bad" — the semantic inks are
+ * reserved for scope verdicts and may not be spent on a distribution.
+ */
+function TallyBlock({ title, rows }: { title: string; rows: { label: string; count: number }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
-    <div className="bg-card border border-rule shadow-card rounded-panel px-5 py-4 flex-1 min-w-0">
-      <PanelLabel>{title}</PanelLabel>
-      <div className="grid gap-2 mt-3">
+    <Sheet className="flex-1 min-w-0">
+      <SheetHead>{title}</SheetHead>
+      <div className="divide-y divide-rule-soft">
         {rows.map((r) => (
-          <div key={r.label} className="grid items-center gap-3" style={{ gridTemplateColumns: '110px 1fr 2ch' }}>
-            <span className="font-mono text-mute truncate" style={{ fontSize: '10.5px', letterSpacing: '0.05em' }}>
+          <div
+            key={r.label}
+            className="grid items-center gap-3 px-4 py-2"
+            style={{ gridTemplateColumns: 'minmax(0,104px) 1fr 3ch' }}
+          >
+            <span className="font-sans text-pencil truncate" style={{ fontSize: 12 }}>
               {r.label}
             </span>
-            <span className="relative rounded-fill bg-paper border border-rule overflow-hidden" style={{ height: 10 }}>
+            <span className="relative overflow-hidden bg-stock border border-rule-soft" style={{ height: 11 }}>
+              {/* Scaled rather than resized: a tally bar has no minimum width to
+                  preserve, so the transform is free and costs no layout. */}
               <span
-                className="absolute inset-y-0 left-0 bg-ink"
-                style={{ width: `${(r.count / max) * 100}%`, transition: 'width 450ms var(--ease-meter)' }}
+                className="absolute inset-y-0 left-0 w-full bg-ink origin-left"
+                style={{
+                  transform: `scaleX(${r.count / max})`,
+                  transition: 'transform 450ms var(--ease-meter)',
+                }}
               />
             </span>
-            <span className="font-mono text-ink tabular-nums text-right" style={{ fontSize: '10.5px' }}>
+            <span className="font-mono text-ink tabular text-right" style={{ fontSize: 12 }}>
               {r.count}
             </span>
           </div>
         ))}
       </div>
-    </div>
+    </Sheet>
   );
 }
 
@@ -49,9 +63,9 @@ export function Distribution({ requests }: { requests: ChangeRequest[] }) {
   ];
 
   return (
-    <section aria-label="Distribution" className="flex flex-col sm:flex-row gap-4">
-      <BarBox title="By kind of change" rows={byType} />
-      <BarBox title="By Growth Engine layer" rows={byLayer} />
+    <section aria-label="Distribution" className="flex flex-col sm:flex-row gap-5">
+      <TallyBlock title="By kind of change" rows={byType} />
+      <TallyBlock title="By Growth Engine layer" rows={byLayer} />
     </section>
   );
 }

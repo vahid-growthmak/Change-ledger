@@ -65,7 +65,7 @@ function ProjectSettingsForm({ projectId, initial }: SettingsPanelProps) {
   }
 
   return (
-    <section className="bg-card border border-rule shadow-card rounded-panel px-6 py-6">
+    <section className="bg-sheet border border-rule px-6 py-6">
       <h2 className="font-sans text-ink mb-4" style={{ fontSize: 15, fontWeight: 600 }}>
         Project settings
       </h2>
@@ -155,11 +155,11 @@ function InviteForm({ projectId }: { projectId: string }) {
   }
 
   return (
-    <section className="bg-card border border-rule shadow-card rounded-panel px-6 py-6">
+    <section className="bg-sheet border border-rule px-6 py-6">
       <h2 className="font-sans text-ink mb-2" style={{ fontSize: 15, fontWeight: 600 }}>
         Invite a client
       </h2>
-      <p className="font-sans text-mute mb-4" style={{ fontSize: 13, lineHeight: 1.55 }}>
+      <p className="font-sans text-pencil mb-4" style={{ fontSize: 13, lineHeight: 1.55 }}>
         They sign in with this email using the magic link on the login page — no password, no
         registration.
       </p>
@@ -204,11 +204,11 @@ function ArchivePanel({ projectId }: { projectId: string }) {
   }
 
   return (
-    <section className="border border-dashed border-rule rounded-panel px-6 py-6">
+    <section className="border border-dashed border-rule px-6 py-6">
       <h2 className="font-sans text-ink mb-2" style={{ fontSize: 15, fontWeight: 600 }}>
         Archive project
       </h2>
-      <p className="font-sans text-mute mb-4" style={{ fontSize: 13, lineHeight: 1.55 }}>
+      <p className="font-sans text-pencil mb-4" style={{ fontSize: 13, lineHeight: 1.55 }}>
         Removes it from the active list. The full request history and audit trail are kept.
       </p>
       <Button type="button" variant="ghost" onClick={handleArchive} disabled={pending}>

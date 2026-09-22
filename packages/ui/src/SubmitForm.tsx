@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createRequestSchema, REQUEST_TYPES, REQUEST_TYPE_LABELS, type CreateRequestInput } from '@growthmak/core';
-import { Button } from './primitives';
+import { Button, Sheet, SheetHead } from './primitives';
 import { FieldLabel, InlineError, Select, TextArea, TextInput } from './fields';
 import { AttachmentPicker, type AttachmentMeta } from './AttachmentPicker';
 
@@ -52,94 +52,94 @@ export function SubmitForm({ onSubmit, onUploadAttachment }: SubmitFormProps) {
   }
 
   return (
-    <section className="bg-card border border-rule shadow-card rounded-panel px-6 py-6" aria-label="Log a change request">
-      <h2 className="font-sans text-ink" style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>
-        Log a change request
-      </h2>
-      <InlineError>{error}</InlineError>
-      <form onSubmit={handleSubmit} className="mt-4 grid gap-4">
-        <div>
-          <FieldLabel htmlFor="cr-title">What needs to change?</FieldLabel>
-          <TextInput
-            id="cr-title"
-            value={values.title}
-            onChange={set('title')}
-            placeholder="Move the testimonial video above the pricing table"
-            autoComplete="off"
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+    <Sheet>
+      <SheetHead>Log a change request</SheetHead>
+      <section className="px-5 py-5" aria-label="Log a change request">
+        <InlineError>{error}</InlineError>
+        <form onSubmit={handleSubmit} className="grid gap-4">
           <div>
-            <FieldLabel htmlFor="cr-type">Kind of change</FieldLabel>
-            <Select id="cr-type" value={values.type} onChange={set('type')}>
-              {REQUEST_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {REQUEST_TYPE_LABELS[t]}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <FieldLabel htmlFor="cr-location">Where — page, campaign, or asset</FieldLabel>
+            <FieldLabel htmlFor="cr-title">What needs to change?</FieldLabel>
             <TextInput
-              id="cr-location"
-              value={values.location}
-              onChange={set('location')}
-              placeholder="Homepage / hero section"
+              id="cr-title"
+              value={values.title}
+              onChange={set('title')}
+              placeholder="Move the testimonial video above the pricing table"
               autoComplete="off"
             />
           </div>
-        </div>
-        {moreOpen ? (
-          <>
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <FieldLabel htmlFor="cr-detail">Anything else that helps</FieldLabel>
-              <TextArea
-                id="cr-detail"
-                rows={3}
-                value={values.detail}
-                onChange={set('detail')}
-                placeholder="The video matters more than the pricing for first-time visitors."
-              />
+              <FieldLabel htmlFor="cr-type">Kind of change</FieldLabel>
+              <Select id="cr-type" value={values.type} onChange={set('type')}>
+                {REQUEST_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {REQUEST_TYPE_LABELS[t]}
+                  </option>
+                ))}
+              </Select>
             </div>
             <div>
-              <FieldLabel htmlFor="cr-link">Link — screenshot, doc, or page</FieldLabel>
+              <FieldLabel htmlFor="cr-location">Where — page, campaign, or asset</FieldLabel>
               <TextInput
-                id="cr-link"
-                type="url"
-                value={values.link}
-                onChange={set('link')}
-                placeholder="https://www.loom.com/share/…"
+                id="cr-location"
+                value={values.location}
+                onChange={set('location')}
+                placeholder="Homepage / hero section"
                 autoComplete="off"
               />
             </div>
-          </>
-        ) : null}
+          </div>
+          {moreOpen ? (
+            <>
+              <div>
+                <FieldLabel htmlFor="cr-detail">Anything else that helps</FieldLabel>
+                <TextArea
+                  id="cr-detail"
+                  rows={3}
+                  value={values.detail}
+                  onChange={set('detail')}
+                  placeholder="The video matters more than the pricing for first-time visitors."
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="cr-link">Link — screenshot, doc, or page</FieldLabel>
+                <TextInput
+                  id="cr-link"
+                  type="url"
+                  value={values.link}
+                  onChange={set('link')}
+                  placeholder="https://www.loom.com/share/…"
+                  autoComplete="off"
+                />
+              </div>
+            </>
+          ) : null}
 
-        {/* Not hidden behind the disclosure: pasting a screenshot is the thing
-            that removes the reason to use WhatsApp instead (C8), and a control
-            nobody can find doesn't do that. */}
-        {onUploadAttachment ? (
-          <AttachmentPicker
-            onUpload={onUploadAttachment}
-            attachments={attachments}
-            onChange={setAttachments}
-            disabled={pending}
-          />
-        ) : null}
+          {/* Not hidden behind the disclosure: pasting a screenshot is the thing
+              that removes the reason to use WhatsApp instead (C8), and a control
+              nobody can find doesn't do that. */}
+          {onUploadAttachment ? (
+            <AttachmentPicker
+              onUpload={onUploadAttachment}
+              attachments={attachments}
+              onChange={setAttachments}
+              disabled={pending}
+            />
+          ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={pending}>
-            {pending ? 'Logging…' : 'Log this request'}
-          </Button>
-          <Button type="button" variant="ghost" small onClick={() => setMoreOpen((o) => !o)}>
-            {moreOpen ? 'Hide extra detail' : 'Add detail or a link'}
-          </Button>
-        </div>
-      </form>
-      <p className="font-sans text-mute mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
-        One line is enough. The description is the only thing required.
-      </p>
-    </section>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={pending}>
+              {pending ? 'Logging…' : 'Log this request'}
+            </Button>
+            <Button type="button" variant="ghost" small onClick={() => setMoreOpen((o) => !o)}>
+              {moreOpen ? 'Hide extra detail' : 'Add detail or a link'}
+            </Button>
+          </div>
+        </form>
+        <p className="font-sans text-pencil text-meta mt-4 max-w-measure">
+          One line is enough. The description is the only thing required.
+        </p>
+      </section>
+    </Sheet>
   );
 }

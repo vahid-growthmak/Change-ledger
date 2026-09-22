@@ -110,7 +110,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
 
   return (
     <section
-      className="bg-card border border-rule shadow-card rounded-panel px-6 py-6"
+      className="bg-sheet border border-rule px-6 py-6"
       aria-label="Log from a meeting transcript"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -123,7 +123,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
             reset();
             setOpen(false);
           }}
-          className="font-mono text-mute underline"
+          className="font-mono text-pencil underline"
           style={{ fontSize: 11 }}
         >
           Close
@@ -151,7 +151,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
               {extracting ? 'Reading the transcript…' : 'Find change requests'}
             </Button>
           </div>
-          <p className="font-sans text-mute" style={{ fontSize: 13, lineHeight: 1.55 }}>
+          <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55 }}>
             Nothing is logged from this step. You&apos;ll get a list to check and edit first —
             anything read wrongly is yours to fix or drop before it reaches the ledger.
           </p>
@@ -159,7 +159,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
       ) : (
         <div className="mt-4 grid gap-4">
           {notes ? (
-            <div className="bg-tint-signal rounded-card px-4 py-3">
+            <div className="bg-wash-signal px-4 py-3">
               <PanelLabel>Worth knowing</PanelLabel>
               <p className="font-sans text-ink mt-1" style={{ fontSize: 13, lineHeight: 1.55 }}>
                 {notes}
@@ -168,8 +168,8 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
           ) : null}
 
           {candidates.length === 0 ? (
-            <div className="border border-dashed border-rule rounded-panel py-8 px-6 text-center">
-              <p className="mx-auto text-mute font-sans" style={{ maxWidth: 400, fontSize: '13.5px', lineHeight: 1.55 }}>
+            <div className="border border-dashed border-rule py-8 px-6 text-center">
+              <p className="mx-auto text-pencil font-sans" style={{ maxWidth: 400, fontSize: '13.5px', lineHeight: 1.55 }}>
                 No change requests in that transcript. If you expected some, they may have been
                 phrased as discussion rather than asks — check the text, or log them by hand.
               </p>
@@ -183,7 +183,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
                 {candidates.map((c, i) => (
                   <article
                     key={i}
-                    className="border border-rule rounded-card px-4 py-4 grid gap-3"
+                    className="border border-rule px-4 py-4 grid gap-3"
                     style={{ opacity: c.keep ? 1 : 0.5 }}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -256,7 +256,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
                       <div>
                         <PanelLabel>Said on the call</PanelLabel>
                         <blockquote
-                          className="font-sans text-mute border-l-2 border-rule pl-3 mt-1"
+                          className="font-sans text-pencil border-l-2 border-rule pl-3 mt-1"
                           style={{ fontSize: 13, lineHeight: 1.55 }}
                         >
                           {c.quote}
@@ -282,7 +282,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
             </Button>
           </div>
           {candidates.length > 0 ? (
-            <p className="font-sans text-mute" style={{ fontSize: 13, lineHeight: 1.55 }}>
+            <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55 }}>
               These log as pending review, like any other request — finding them isn&apos;t triaging
               them.
             </p>

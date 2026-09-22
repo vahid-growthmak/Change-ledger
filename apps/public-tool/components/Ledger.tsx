@@ -24,6 +24,8 @@ import {
   Distribution,
   EmptyState,
   FilterChip,
+  Sheet,
+  SheetHead,
   Meter,
   MeterLegend,
   PanelLabel,
@@ -92,15 +94,17 @@ export function Ledger() {
     return (
       <main className="max-w-page mx-auto px-5 py-8">
         <Masthead />
-        <div className="bg-card border border-rule shadow-card rounded-panel px-6 py-6 mt-6">
-          <h1 className="font-sans text-ink" style={{ fontSize: 'clamp(21px, 3vw, 26px)', fontWeight: 600, letterSpacing: '-0.025em' }}>
+        <div className="mt-8" style={{ maxWidth: 720 }}>
+          <h1 className="font-sans text-ink text-title" style={{ fontWeight: 600, letterSpacing: '-0.025em' }}>
             Set up your ledger
           </h1>
-          <p className="font-sans text-mute mt-2 mb-5" style={{ fontSize: '13.5px', lineHeight: 1.55, maxWidth: 560 }}>
+          <p className="font-sans text-pencil text-body mt-2 max-w-measure">
             Name the engagement, set the agreed hours and rate, and start logging every change request
             against them. Everything stays in this browser — nothing is sent anywhere.
           </p>
-          <SettingsForm initial={null} onSave={(p) => { ledger.saveProject(p); showToast('Ledger ready'); }} />
+          <div className="bg-sheet border border-rule px-5 py-5 mt-5">
+            <SettingsForm initial={null} onSave={(p) => { ledger.saveProject(p); showToast('Ledger ready'); }} />
+          </div>
         </div>
       </main>
     );
@@ -137,10 +141,10 @@ export function Ledger() {
           <h1 className="font-sans text-ink" style={{ fontSize: 'clamp(21px, 3vw, 26px)', fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.15 }}>
             {project.projectName}
           </h1>
-          <span className="font-sans text-mute" style={{ fontSize: '14.5px' }}>
+          <span className="font-sans text-pencil" style={{ fontSize: '14.5px' }}>
             {project.clientName}
           </span>
-          <span className="font-mono uppercase text-mute" style={{ fontSize: '9.5px', letterSpacing: '0.13em' }}>
+          <span className="font-narrow uppercase text-pencil" style={{ fontSize: '9.5px', letterSpacing: '0.13em' }}>
             {project.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
             {periodLabel ? ` · ${periodLabel}` : ''}
           </span>
@@ -165,7 +169,7 @@ export function Ledger() {
       </ReadoutRow>
 
       {/* The meter (M1–M3) */}
-      <section className="bg-card border border-rule shadow-card rounded-panel px-6 pt-6 pb-5" aria-label="Hours against agreement">
+      <section className="bg-sheet border border-rule px-6 pt-6 pb-5" aria-label="Hours against agreement">
         <Meter
           contractedHours={project.contractedHours}
           inScopeHours={totals!.inScopeHours}
@@ -177,7 +181,7 @@ export function Ledger() {
         />
         <MeterLegend pendingNote="Pending review — not yet counted either way" />
         {project.mode === 'retainer' ? (
-          <p className="font-sans text-mute mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
+          <p className="font-sans text-pencil mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
             The meter counts {periodLabel}. It resets each cycle; the full history stays in the list below.
           </p>
         ) : null}
@@ -185,7 +189,7 @@ export function Ledger() {
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-2" role="group" aria-label="View">
+        <div className="flex flex-wrap" role="group" aria-label="View">
           <FilterChip pressed={view === 'client'} onClick={() => { setView('client'); setSettingsOpen(false); }}>
             Client view
           </FilterChip>
@@ -206,7 +210,7 @@ export function Ledger() {
       </div>
 
       {view === 'team' && settingsOpen ? (
-        <section className="bg-card border border-rule shadow-card rounded-panel px-6 py-6" aria-label="Project settings">
+        <section className="bg-sheet border border-rule px-6 py-6" aria-label="Project settings">
           <h2 className="font-sans text-ink mb-4" style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>
             Project settings
           </h2>
@@ -235,7 +239,7 @@ export function Ledger() {
       {/* Filters (O4) */}
       {requests.length > 0 ? (
         <section aria-label="Filters" className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center">
             <FilterChip pressed={filter === 'all'} onClick={() => setFilter('all')}>
               All
             </FilterChip>
@@ -248,9 +252,11 @@ export function Ledger() {
             <FilterChip pressed={filter === 'open'} onClick={() => setFilter('open')}>
               Still open
             </FilterChip>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:flex-none sm:flex-nowrap sm:ml-auto">
             <Select
               aria-label="Kind of change"
-              className="sm:ml-2"
+              className="flex-1 min-w-0 sm:flex-none"
               style={{ maxWidth: 180 }}
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as '' | RequestType)}
@@ -262,20 +268,30 @@ export function Ledger() {
                 </option>
               ))}
             </Select>
+            <TextInput
+              aria-label="Search requests"
+              placeholder="Search the log"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 min-w-0 sm:flex-none"
+              style={{ maxWidth: 240 }}
+            />
           </div>
-          <TextInput
-            aria-label="Search requests"
-            placeholder="Search the log"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-auto"
-            style={{ maxWidth: 240 }}
-          />
         </section>
       ) : null}
 
       {/* The list */}
-      <section aria-label="Change requests" className="grid gap-3">
+      <Sheet>
+        <SheetHead
+          right={
+            <span className="font-mono text-pencil tabular" style={{ fontSize: 11 }}>
+              {filtered.length === requests.length ? `${requests.length}` : `${filtered.length} / ${requests.length}`}
+            </span>
+          }
+        >
+          The log
+        </SheetHead>
+        <section aria-label="Change requests" className="divide-y divide-rule">
         {requests.length === 0 ? (
           <EmptyState>
             No changes logged yet. Every time something new is asked for, add it here. That&apos;s how
@@ -319,12 +335,13 @@ export function Ledger() {
             );
           })
         )}
-      </section>
+        </section>
+      </Sheet>
 
       {view === 'team' ? <Distribution requests={requests} /> : null}
 
       <footer className="border-t border-rule pt-5 mt-2">
-        <p className="font-sans text-mute" style={{ fontSize: 13, lineHeight: 1.55, maxWidth: 560 }}>
+        <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55, maxWidth: 560 }}>
           This ledger lives in your browser only — nothing you type leaves it. It is the free version
           of the shared ledger Growthmak runs with every client engagement.
         </p>
@@ -338,10 +355,10 @@ export function Ledger() {
 function Masthead() {
   return (
     <div className="border-b border-rule pb-3">
-      <span className="font-mono uppercase text-signal-ink" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em' }}>
+      <span className="font-narrow uppercase text-signal" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em' }}>
         Growthmak
       </span>
-      <span className="font-mono uppercase text-mute" style={{ fontSize: 11, letterSpacing: '0.16em' }}>
+      <span className="font-narrow uppercase text-pencil" style={{ fontSize: 11, letterSpacing: '0.16em' }}>
         {' '}
         / Change Ledger
       </span>

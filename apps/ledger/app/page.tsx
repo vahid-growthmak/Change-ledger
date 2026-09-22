@@ -21,8 +21,8 @@ export default async function HomePage() {
     return (
       <main className="max-w-page mx-auto px-5 py-8">
         <AppHeader session={session} />
-        <div className="border border-dashed border-rule rounded-panel py-8 px-6 text-center">
-          <p className="mx-auto text-mute font-sans" style={{ maxWidth: 400, fontSize: '13.5px', lineHeight: 1.55 }}>
+        <div className="border border-dashed border-rule py-8 px-6 text-center">
+          <p className="mx-auto text-pencil font-sans" style={{ maxWidth: 400, fontSize: '13.5px', lineHeight: 1.55 }}>
             No project yet. Ask your Growthmak contact to add you — you'll land here automatically
             once they do.
           </p>
@@ -39,9 +39,9 @@ export default async function HomePage() {
     <main className="max-w-page mx-auto px-5 py-8 grid gap-6">
       <AppHeader session={session} />
 
-      <section aria-label="Projects" className="bg-card border border-rule shadow-card rounded-panel overflow-hidden">
+      <section aria-label="Projects" className="bg-sheet border border-rule overflow-hidden">
         {active.length === 0 ? (
-          <p className="font-sans text-mute px-6 py-6" style={{ fontSize: '13.5px' }}>
+          <p className="font-sans text-pencil px-6 py-6" style={{ fontSize: '13.5px' }}>
             No projects yet — create the first one below.
           </p>
         ) : (
@@ -50,14 +50,14 @@ export default async function HomePage() {
               {active.map((p) => (
                 <tr key={p.id} className="border-b border-rule last:border-0">
                   <td className="px-6 py-4">
-                    <a href={`/${p.slug}`} className="font-sans text-ink font-medium hover:text-signal-ink">
+                    <a href={`/${p.slug}`} className="font-sans text-ink font-medium hover:text-signal">
                       {p.projectName}
                     </a>
-                    <div className="font-mono text-mute" style={{ fontSize: 11 }}>
+                    <div className="font-mono text-pencil" style={{ fontSize: 11 }}>
                       {p.clientName}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-mono uppercase text-mute text-right" style={{ fontSize: 10.5, letterSpacing: '0.08em' }}>
+                  <td className="px-6 py-4 font-narrow uppercase text-pencil text-right" style={{ fontSize: 10.5, letterSpacing: '0.08em' }}>
                     {p.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
                   </td>
                 </tr>
@@ -69,12 +69,12 @@ export default async function HomePage() {
 
       {archived.length > 0 ? (
         <section aria-label="Archived projects">
-          <p className="font-mono uppercase text-mute mb-2" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
+          <p className="font-narrow uppercase text-pencil mb-2" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
             Archived
           </p>
           <ul className="grid gap-1">
             {archived.map((p) => (
-              <li key={p.id} className="font-sans text-mute" style={{ fontSize: 13 }}>
+              <li key={p.id} className="font-sans text-pencil" style={{ fontSize: 13 }}>
                 {p.projectName} — {p.clientName}
               </li>
             ))}
@@ -82,7 +82,7 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      <section className="bg-card border border-rule shadow-card rounded-panel px-6 py-6">
+      <section className="bg-sheet border border-rule px-6 py-6">
         <h2 className="font-sans text-ink mb-4" style={{ fontSize: 15, fontWeight: 600 }}>
           New project
         </h2>

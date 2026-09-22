@@ -5,26 +5,32 @@
 @tailwind utilities;
 
 body {
-  background: var(--paper);
+  background: var(--stock);
   color: var(--ink);
+  /* The sheet is set on stock, and stock is warm. Letting the browser
+     synthesise weights on top of that muddies the rules, so the faces are
+     rendered as drawn. */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * Focus is a stamp outline, not a glow: two rules, offset, in copying-pencil
+ * ink. It has to survive on stock, on sheet, and on top of a hatch.
+ */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 0;
 }
 
 @keyframes toast-in {
   from {
     opacity: 0;
+    transform: translate(-50%, 4px);
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes card-rise {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+    transform: translate(-50%, 0);
   }
 }

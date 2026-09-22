@@ -1,54 +1,160 @@
 /*
- * Growthmak Change Ledger — design tokens.
- * Values are drawn from growthmak.com's live theme (--blue, --fg, --muted,
- * --line, the emerald/amber Tailwind ramps, the pill/soft-shadow language),
- * not invented independently — this tool should read as Growthmak's, not
- * as a standalone instrument panel.
+ * Change Ledger — design tokens.
  *
- * --signal and --signal-ink split the brand blue the same way growthmak.com
- * does: #0787fe is too light to pass AA at small text sizes (~3.6:1), so
- * the site itself keeps a darker text-safe variant for links and labels.
+ * The world is a shipping manifest: the multi-part carbon document that is
+ * counted at handover and settles the dispute afterwards. That is this product,
+ * so the interface is the document rather than a console reporting on one.
+ *
+ * Three rules make the world, and every value below follows from them:
+ *
+ *   1. Elevation is declared once, as a printed rule. There are no shadows in
+ *      this file and none in any component. A 1px border under a soft shadow is
+ *      the ghost card, and it is what the previous build shipped.
+ *   2. Ink is semantic. Green, red and purple mean in scope, beyond scope and
+ *      needs attention. None of the three may be spent decoratively.
+ *   3. Pending has no ink at all. It hatches, because an untriaged request must
+ *      not borrow the visual authority of a verdict it has not been given.
  */
 :root {
-  --paper: #f6f9fd;
-  --card: #ffffff;
-  --ink: #131313;
-  --mute: #5c5c5c;
-  --mute-2: #8a8a8a;
-  --rule: #e3e8ef;
-  --signal: #0787fe;
-  --signal-ink: #0069d6;
-  --clear: #007956;
-  --over: #b75000;
+  color-scheme: light;
 
-  /* Tinted backgrounds — tags only, lifted from Growthmak's own emerald/amber/blue tints */
-  --tint-clear: #ecfdf5;
-  --tint-over: #fffbeb;
-  --tint-signal: #eaf4ff;
-  --tint-pending: #eef0f2;
+  /* ---- Stock ------------------------------------------------------------ */
+  /* The ground is document stock, not a cool UI grey and not an editorial
+     cream: warm, low-chroma, and slightly green so the stamp inks sit on it
+     the way they sit on a real form. */
+  --stock: #e9e7e0;
+  --stock-2: #e1ded5; /* recessed cells, table headers, inset fills */
+  --sheet: #fcfcfa; /* the writing surface: inputs, the log, raised panels */
 
-  /* Pending review has no colour: diagonal hatch = not yet measured (T6) */
-  --hatch-dark: #d7dce2;
-  --hatch-light: #eef1f4;
+  /* ---- Ink -------------------------------------------------------------- */
+  --ink: #1a1815; /* 14.0:1 on stock — body, values, headings */
+  --pencil: #5f5a52; /*  5.6:1 on stock — labels, metadata, timestamps */
+  --pencil-2: #8a857b; /*  3.1:1 — decorative rules and disabled text only,
+                            never load-bearing prose */
 
-  --shadow-card: 0 1px 2px rgba(19, 19, 19, 0.04), 0 10px 24px -14px rgba(19, 19, 19, 0.16);
-  --shadow-blue: 0 12px 26px -12px rgba(7, 135, 254, 0.45);
+  /* ---- Rules ------------------------------------------------------------ */
+  /* Pre-printed rules are light; the title block's own rules are ink. The
+     difference is what makes the sheet read as printed rather than divided. */
+  --rule: #c9c4b8;
+  --rule-soft: #ddd9cf;
+  --rule-ink: #1a1815;
 
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  /* ---- Stamp inks ------------------------------------------------------- */
+  /* Indelible copying pencil for attention, and the two verdicts as stamp
+     inks. All three clear AA on both stock and sheet. */
+  --signal: #4a3c8c; /* 8.8:1 on sheet — focus, links, needs quote */
+  --clear: #1f6f4a; /* 6.0:1 on sheet — in scope */
+  --over: #b3302a; /* 6.1:1 on sheet — beyond scope */
 
+  /* Stamped boxes: the faintest wash of the ink, carrying a 1px rule of the
+     ink itself. Never a soft pill on white. */
+  --wash-clear: #e6efe9;
+  --wash-over: #f6e7e5;
+  --wash-signal: #e9e6f1;
+
+  /* ---- Hatch ------------------------------------------------------------ */
+  /* Pending review. Load-bearing, not texture: it reads as "not yet
+     measured", which is exactly what it is. */
+  --hatch-line: #c4bfb2;
+  --hatch-ground: #ded9ce;
+
+  /* ---- Type ------------------------------------------------------------- */
+  /* A form prints its labels and is written into. Archivo Narrow is the
+     pre-printed label, Archivo the written prose, Courier Prime every value
+     that was measured, counted or machine-assigned. The split is the system,
+     not a texture. */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-narrow: var(--font-archivo-narrow), var(--font-archivo), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-courier-prime), ui-monospace, 'Courier New', monospace;
+
+  /* ---- Motion ----------------------------------------------------------- */
+  /* One authored moment: the stamp landing. Everything else is instant,
+     because in an interface about accuracy motion reads as latency. */
+  --ease-stamp: cubic-bezier(0.2, 0, 0, 1);
   --ease-meter: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Pending review, everywhere it appears. */
 .hatch {
-  background: repeating-linear-gradient(
+  background-image: repeating-linear-gradient(
     -45deg,
-    var(--hatch-dark) 0 4px,
-    var(--hatch-light) 4px 8px
+    var(--hatch-line) 0 1px,
+    var(--hatch-ground) 1px 5px
   );
 }
 
-/* Reduced motion means off, not reduced */
+/*
+ * Browser surfaces. The parts we did not draw still carry the design, and
+ * they ship with defaults belonging to no design system.
+ */
+::selection {
+  background: var(--signal);
+  color: #fff;
+}
+
+:root {
+  accent-color: var(--signal);
+  caret-color: var(--signal);
+}
+
+/* Measured values hold their columns as the numbers change — a functional
+   requirement in a tool whose subject is a number that moves. */
+.tabular,
+input[type='number'] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* The scrollbar is part of the sheet. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+*::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 3px solid var(--stock);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--pencil-2);
+}
+
+/* Links carry the copying-pencil ink and an underline that clears the
+   descenders rather than cutting through them. */
+a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
+}
+
+@keyframes stamp-land {
+  from {
+    transform: scale(1.04);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes entry-file {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Reduced motion means off, not reduced. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
