@@ -9,3 +9,21 @@ dist/
 .vercel
 .pglite/
 .neon
+
+# Local agent tooling — general-purpose frontend/design skills and MCP config
+# installed per-machine, not part of this project. The neon-* skills under
+# .claude/skills are deliberately tracked: they document how this repo uses
+# Neon, so they stay in git.
+.agents/
+.mcp.json
+.claude/skills/emil-design-eng
+.claude/skills/impeccable
+.claude/skills/taste-design
+.claude/skills/framer-motion/
+.claude/skills/senior-frontend/
+.claude/skills/ui-ux-pro-max/
+.claude/skills/frontend-design/
+
+# Impeccable design-skill working state (surface briefs, run config).
+# The durable record of the design system is DESIGN.md, which is tracked.
+.impeccable/
