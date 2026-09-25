@@ -15,7 +15,7 @@ function TallyBlock({ title, rows }: { title: string; rows: { label: string; cou
         {rows.map((r) => (
           <div
             key={r.label}
-            className="grid items-center gap-3 px-4 py-2"
+            className="grid items-center gap-3 px-5 py-2"
             style={{ gridTemplateColumns: 'minmax(0,104px) 1fr 3ch' }}
           >
             <span className="font-sans text-pencil truncate" style={{ fontSize: 12 }}>

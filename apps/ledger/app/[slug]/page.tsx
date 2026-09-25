@@ -92,17 +92,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <dl className="grid grid-cols-2 sm:grid-cols-3 border border-rule bg-sheet divide-x divide-y sm:divide-y-0 divide-rule">
-          <div className="px-4 py-3 min-w-0">
+          <div className="px-5 py-3 min-w-0">
             <dt className="font-narrow uppercase text-pencil text-label tracking-label">Client</dt>
             <dd className="font-sans text-ink text-body mt-0.5 truncate">{project.clientName}</dd>
           </div>
-          <div className="px-4 py-3 min-w-0">
+          <div className="px-5 py-3 min-w-0">
             <dt className="font-narrow uppercase text-pencil text-label tracking-label">Engagement</dt>
             <dd className="font-sans text-ink text-body mt-0.5 truncate">
               {project.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
             </dd>
           </div>
-          <div className="px-4 py-3 min-w-0">
+          <div className="px-5 py-3 min-w-0">
             <dt className="font-narrow uppercase text-pencil text-label tracking-label">
               {periodLabel ? 'Period' : 'Reference'}
             </dt>
