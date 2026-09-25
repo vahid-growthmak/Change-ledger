@@ -264,11 +264,11 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
               Still open
             </FilterChip>
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:flex-none sm:flex-nowrap sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:flex-nowrap sm:ml-auto">
             <Select
               aria-label="Kind of change"
               className="flex-1 min-w-0 sm:flex-none"
-              style={{ maxWidth: 180 }}
+              style={{ width: 180, maxWidth: '100%' }}
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as '' | RequestType)}
             >
@@ -285,7 +285,7 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 min-w-0 sm:flex-none"
-              style={{ maxWidth: 240 }}
+              style={{ width: 240, maxWidth: '100%' }}
             />
           </div>
         </section>
