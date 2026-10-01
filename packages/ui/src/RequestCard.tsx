@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Tag, type ScopeTone } from './primitives';
+import { CONTROL_SM, Tag, type ScopeTone } from './primitives';
 
 export interface RequestCardProps {
   refId: string;
@@ -24,19 +24,20 @@ export interface RequestCardProps {
   timestamps: string;
   /** Done / Won't do drop to 55% opacity — the count stays visibly intact. */
   dimmed?: boolean;
-  /** Triage row, rendered below a rule in the Growthmak view only. */
+  /** Triage row, rendered below a hairline in the Growthmak view only. */
   triageSlot?: React.ReactNode;
 }
 
 /**
- * One entry in the manifest.
+ * One entry in the log.
  *
- * Not a card: entries tile hairline to hairline and the log's own rules divide
- * them, so a hundred requests read as one document rather than a hundred
- * floating objects. The reference is the headline — it is what a client quotes
- * on a call — and the verdict is stamped to its right. The verdict's ink
- * appears only inside that stamp; an entry never wears a coloured edge,
- * because the written label is what has to carry the meaning.
+ * Not its own card: entries are rows inside the log's card, divided by
+ * hairlines, so a hundred requests read as one list rather than a hundred
+ * floating objects. The reference leads as a soft chip — it is what a client
+ * quotes on a call, so it has to be findable without becoming the headline —
+ * the title is the headline, and the verdict is the chip on the right. The
+ * verdict's colour appears only inside that chip; an entry never wears a
+ * coloured edge, because the written label is what has to carry the meaning.
  */
 export function RequestCard({
   refId,
@@ -54,21 +55,17 @@ export function RequestCard({
 }: RequestCardProps) {
   return (
     <article
-      className="px-4 py-4 sm:px-5 transition-colors duration-150 hover:bg-stock-2/40"
-      style={{ opacity: dimmed ? 0.55 : 1, animation: 'entry-file 220ms var(--ease-stamp) both' }}
+      className="px-5 py-5 sm:px-6 transition-colors duration-200 ease-soft hover:bg-stock/60"
+      style={{ opacity: dimmed ? 0.55 : 1, animation: 'row-in 240ms var(--ease-out) both' }}
     >
-      <div className="grid gap-x-4 gap-y-2" style={{ gridTemplateColumns: 'minmax(0,1fr)' }}>
-        <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
-          {/* The number as headline: machine-assigned, so Courier, and set at
-              the scale of the thing people actually refer to. */}
-          <span
-            className="font-mono text-ink tabular shrink-0 text-ref"
-            style={{ letterSpacing: '-0.01em' }}
-          >
+      <div className="grid gap-x-4 gap-y-3" style={{ gridTemplateColumns: 'minmax(0,1fr)' }}>
+        <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+          <span className="inline-flex items-center rounded-sm bg-stock-2 text-pencil tabular
+            font-semibold text-ref shrink-0 px-2 py-1 mt-0.5">
             {refId}
           </span>
           <div className="flex-1 min-w-[12rem]">
-            <h3 className="font-sans text-ink text-entry max-w-measure" style={{ fontWeight: 500 }}>
+            <h3 className="text-ink text-entry font-semibold tracking-snug max-w-measure">
               {title}
             </h3>
           </div>
@@ -77,22 +74,18 @@ export function RequestCard({
           </span>
         </div>
 
-        <div className="font-sans text-pencil text-meta" style={{ lineHeight: 1.7 }}>
-          {meta}
-        </div>
+        <div className="text-pencil text-meta font-medium">{meta}</div>
 
-        {detail ? (
-          <p className="font-sans text-ink text-body max-w-measure">{detail}</p>
-        ) : null}
+        {detail ? <p className="text-ink text-body max-w-measure">{detail}</p> : null}
 
         {sourceQuote ? (
-          <blockquote className="font-sans text-pencil border-l border-rule pl-3 text-body max-w-measure">
+          <blockquote className="rounded-control bg-stock text-pencil px-4 py-3 text-body max-w-measure">
             {sourceQuote}
           </blockquote>
         ) : null}
 
         {attachments && attachments.length > 0 ? (
-          <div className="flex flex-wrap items-start gap-2">
+          <div className="flex flex-wrap items-start gap-3">
             {attachments.map((a) =>
               a.contentType.startsWith('image/') ? (
                 <a
@@ -101,8 +94,9 @@ export function RequestCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   title={a.name}
-                  className="block border border-rule hover:border-ink transition-colors duration-150"
-                  style={{ width: 92, height: 92 }}
+                  className="block overflow-hidden rounded-control bg-stock-2 shadow-card
+                    transition-shadow duration-200 ease-soft hover:shadow-raised"
+                  style={{ width: 96, height: 96 }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -118,8 +112,10 @@ export function RequestCard({
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center border border-rule px-3 py-2 font-sans text-meta
-                    text-ink hover:border-ink transition-colors duration-150"
+                  className="inline-flex items-center rounded-control border border-rule bg-stock
+                    px-4 text-meta font-semibold text-ink hover:border-pencil-2 hover:bg-sheet
+                    transition-colors duration-200 ease-soft"
+                  style={{ minHeight: CONTROL_SM }}
                 >
                   {a.name}
                 </a>
@@ -133,19 +129,16 @@ export function RequestCard({
             href={link}
             target="_blank"
             rel="noopener nofollow noreferrer"
-            className="text-signal font-sans underline text-meta break-all inline-block"
+            className="text-signal font-medium underline text-meta break-all inline-block"
           >
             {link}
           </a>
         ) : null}
 
-        {/* Machine-assigned, so Courier. */}
-        <div className="font-mono text-pencil tabular" style={{ fontSize: 11 }}>
-          {timestamps}
-        </div>
+        <div className="text-pencil tabular text-label font-medium">{timestamps}</div>
       </div>
 
-      {triageSlot ? <div className="mt-4 pt-4 border-t border-rule-soft">{triageSlot}</div> : null}
+      {triageSlot ? <div className="mt-5 pt-5 border-t border-rule-soft">{triageSlot}</div> : null}
     </article>
   );
 }

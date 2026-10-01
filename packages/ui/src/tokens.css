@@ -1,86 +1,94 @@
 /*
  * Change Ledger — design tokens.
  *
- * The world is a shipping manifest: the multi-part carbon document that is
- * counted at handover and settles the dispute afterwards. That is this product,
- * so the interface is the document rather than a console reporting on one.
+ * The world is a modern financial console: a pale lavender ground with white
+ * cards floating on it, black as the only accent strong enough to be an
+ * action, and type set in one geometric sans at the sizes a dashboard reads
+ * at. Everything below follows from four rules:
  *
- * Three rules make the world, and every value below follows from them:
- *
- *   1. Elevation is declared once, as a printed rule. There are no shadows in
- *      this file and none in any component. A 1px border under a soft shadow is
- *      the ghost card, and it is what the previous build shipped.
- *   2. Ink is semantic. Green, red and purple mean in scope, beyond scope and
- *      needs attention. None of the three may be spent decoratively.
- *   3. Pending has no ink at all. It hatches, because an untriaged request must
- *      not borrow the visual authority of a verdict it has not been given.
+ *   1. Elevation is a shadow, not a rule. Cards lift off the ground with a
+ *      soft, wide, low-opacity shade and carry no border at all. A hairline
+ *      only ever divides content *inside* a card.
+ *   2. Corners are generous. 20px on cards, 12px on controls, full on pills.
+ *      Nothing in the interface has a square corner.
+ *   3. Black is the accent. The primary action, the chart fill and the one
+ *      feature card are all ink; colour is kept for meaning.
+ *   4. Colour is still semantic. Green, red and indigo mean in scope, beyond
+ *      scope and needs attention, and none of them is spent decoratively.
+ *      Pending has no colour: it is neutral grey, because an untriaged
+ *      request must not borrow the authority of a verdict it has not been
+ *      given.
  */
 :root {
   color-scheme: light;
 
-  /* ---- Stock ------------------------------------------------------------ */
-  /* The ground is document stock, not a cool UI grey and not an editorial
-     cream: warm, low-chroma, and slightly green so the stamp inks sit on it
-     the way they sit on a real form. */
-  --stock: #e9e7e0;
-  --stock-2: #e1ded5; /* recessed cells, table headers, inset fills */
-  --sheet: #fcfcfa; /* the writing surface: inputs, the log, raised panels */
+  /* ---- Ground and surfaces ---------------------------------------------- */
+  /* The page is a pale periwinkle — cool, barely saturated, just blue enough
+     that a pure-white card reads as lifted rather than as more of the page. */
+  --stock: #eeeff8;
+  --stock-2: #e3e4f0; /* recessed fills: chart tracks, inset cells, chips */
+  --sheet: #ffffff; /* the card */
 
   /* ---- Ink -------------------------------------------------------------- */
-  --ink: #1a1815; /* 14.0:1 on stock — body, values, headings */
-  --pencil: #5f5a52; /*  5.6:1 on stock — labels, metadata, timestamps */
-  --pencil-2: #8a857b; /*  3.1:1 — decorative rules and disabled text only,
-                            never load-bearing prose */
+  --ink: #121218; /* 18.7:1 on sheet — headings, figures, the black card */
+  --ink-2: #26262f; /* the hover state of anything that is ink */
+  --pencil: #636375; /*  5.9:1 on sheet — captions, metadata, timestamps */
+  --pencil-2: #808094; /*  3.9:1 — placeholders and disabled only, never
+                            load-bearing prose */
 
-  /* ---- Rules ------------------------------------------------------------ */
-  /* Pre-printed rules are light; the title block's own rules are ink. The
-     difference is what makes the sheet read as printed rather than divided. */
-  --rule: #c9c4b8;
-  --rule-soft: #ddd9cf;
-  --rule-ink: #1a1815;
+  /* ---- Hairlines -------------------------------------------------------- */
+  /* Only ever inside a card. The edge of a card is its shadow. */
+  --rule: #e5e5ef;
+  --rule-soft: #eeeef5;
+  --rule-ink: #121218;
 
-  /* ---- Stamp inks ------------------------------------------------------- */
-  /* Indelible copying pencil for attention, and the two verdicts as stamp
-     inks. All three clear AA on both stock and sheet. */
-  --signal: #4a3c8c; /* 8.8:1 on sheet — focus, links, needs quote */
-  --clear: #1f6f4a; /* 6.0:1 on sheet — in scope */
-  --over: #b3302a; /* 6.1:1 on sheet — beyond scope */
+  /* ---- Semantic colour -------------------------------------------------- */
+  /* Indigo for attention, and the two verdicts. All three clear AA on the
+     sheet, on the ground, and on their own wash. */
+  --signal: #4a41d8; /* 6.9:1 on sheet — focus, links, needs quote */
+  --clear: #107a48; /* 5.4:1 on sheet — in scope */
+  --over: #c62b2b; /* 5.6:1 on sheet — beyond scope */
 
-  /* Stamped boxes: the faintest wash of the ink, carrying a 1px rule of the
-     ink itself. Never a soft pill on white. */
-  --wash-clear: #e6efe9;
-  --wash-over: #f6e7e5;
-  --wash-signal: #e9e6f1;
+  /* Soft chips: a tint of the colour, no border. */
+  --wash-clear: #e7f6ec;
+  --wash-over: #fcebeb;
+  --wash-signal: #ecebfc;
 
-  /* ---- Hatch ------------------------------------------------------------ */
-  /* Pending review. Load-bearing, not texture: it reads as "not yet
-     measured", which is exactly what it is. */
-  --hatch-line: #c4bfb2;
-  --hatch-ground: #ded9ce;
+  /* Pending review. Deliberately colourless — it reads as "not yet decided",
+     which is exactly what it is. */
+  --wash-pending: #e3e4f0;
+  --pending-fill: #b9bacd; /* the meter's pending segment */
+
+  /* ---- On the black card ------------------------------------------------ */
+  /* The feature card is ink, so it carries its own palette. Each value is
+     measured against --ink, not against the sheet. */
+  --on-ink: #ffffff; /* 18.7:1 */
+  --on-ink-soft: rgba(255, 255, 255, 0.64); /* 8.1:1 */
+  --on-ink-track: rgba(255, 255, 255, 0.14);
+  --on-ink-rule: rgba(255, 255, 255, 0.16);
+  --clear-on-ink: #4ade80; /* 10.7:1 on ink */
+  --over-on-ink: #ff7b7b; /*  7.4:1 on ink */
+  --pending-on-ink: rgba(255, 255, 255, 0.44);
+
+  /* ---- Elevation -------------------------------------------------------- */
+  /* Wide, soft and barely there. A card is separated from the ground by the
+     spread of its shade, not by its darkness. */
+  --shadow-card: 0 1px 2px rgba(18, 18, 40, 0.04), 0 10px 28px -12px rgba(18, 18, 40, 0.14);
+  --shadow-raised: 0 2px 4px rgba(18, 18, 40, 0.05), 0 18px 40px -16px rgba(18, 18, 40, 0.22);
+  --shadow-float: 0 8px 18px rgba(18, 18, 40, 0.1), 0 28px 56px -20px rgba(18, 18, 40, 0.3);
+  /* Under anything black, the shade takes the ink's own colour. */
+  --shadow-ink: 0 2px 6px rgba(18, 18, 40, 0.2), 0 14px 28px -12px rgba(18, 18, 40, 0.38);
+  --shadow-focus: 0 0 0 3px rgba(74, 65, 216, 0.22);
 
   /* ---- Type ------------------------------------------------------------- */
-  /* A form prints its labels and is written into. Archivo Narrow is the
-     pre-printed label, Archivo the written prose, Courier Prime every value
-     that was measured, counted or machine-assigned. The split is the system,
-     not a texture. */
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-narrow: var(--font-archivo-narrow), var(--font-archivo), ui-sans-serif, sans-serif;
-  --font-mono: var(--font-courier-prime), ui-monospace, 'Courier New', monospace;
+  /* One face, geometric and slightly rounded, carrying the whole interface.
+     Weight and size do the work that three families used to. */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* ---- Motion ----------------------------------------------------------- */
-  /* One authored moment: the stamp landing. Everything else is instant,
-     because in an interface about accuracy motion reads as latency. */
-  --ease-stamp: cubic-bezier(0.2, 0, 0, 1);
-  --ease-meter: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Pending review, everywhere it appears. */
-.hatch {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--hatch-line) 0 1px,
-    var(--hatch-ground) 1px 5px
-  );
+  /* Soft and quick: things settle in rather than snapping. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /*
@@ -93,11 +101,11 @@
 }
 
 :root {
-  accent-color: var(--signal);
+  accent-color: var(--ink);
   caret-color: var(--signal);
 }
 
-/* Measured values hold their columns as the numbers change — a functional
+/* Figures hold their columns as the numbers change — a functional
    requirement in a tool whose subject is a number that moves. */
 .tabular,
 input[type='number'] {
@@ -105,36 +113,39 @@ input[type='number'] {
   font-feature-settings: 'tnum' 1;
 }
 
-/* The scrollbar is part of the sheet. */
+/* The scrollbar belongs to the ground. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--rule) transparent;
+  scrollbar-color: #c9cada transparent;
 }
 *::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--rule);
-  border: 3px solid var(--stock);
+  background: #c9cada;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
   background: var(--pencil-2);
+  background-clip: content-box;
 }
 
-/* Links carry the copying-pencil ink and an underline that clears the
-   descenders rather than cutting through them. */
+/* Links carry the indigo and an underline that clears the descenders. */
 a {
   text-underline-offset: 0.18em;
   text-decoration-thickness: from-font;
 }
 
-@keyframes stamp-land {
+/* A chip or a verdict settles in; it does not pop. */
+@keyframes pop-in {
   from {
-    transform: scale(1.04);
+    transform: scale(0.96);
     opacity: 0;
   }
   to {
@@ -143,14 +154,26 @@ a {
   }
 }
 
-@keyframes entry-file {
+/* A row arriving in the log. */
+@keyframes row-in {
   from {
-    transform: translateY(4px);
+    transform: translateY(6px);
     opacity: 0;
   }
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
   }
 }
 

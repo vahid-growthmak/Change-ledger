@@ -63,7 +63,7 @@ export function NewProjectForm() {
       </div>
       <div>
         <FieldLabel>Engagement</FieldLabel>
-        <div className="flex gap-3" role="group" aria-label="Engagement mode">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Engagement mode">
           <FilterChip pressed={mode === 'foundation'} onClick={() => setMode('foundation')}>
             Foundation Build — fixed scope
           </FilterChip>

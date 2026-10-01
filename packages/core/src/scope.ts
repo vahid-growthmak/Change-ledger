@@ -9,8 +9,8 @@ export interface LedgerTotals {
   inScopeHours: number;
   /**
    * Estimated hours not yet confirmed either way: verdict unset, or
-   * "Needs quote" pending the client's decision. Rendered hatched, and
-   * excluded from the cost figure so the number reported is never larger
+   * "Needs quote" pending the client's decision. Rendered in neutral grey,
+   * and excluded from the cost figure so the number reported is never larger
    * than what has actually been agreed (open question 2, resolved
    * conservatively).
    */

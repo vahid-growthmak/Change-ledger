@@ -1,3 +1,5 @@
+import { ButtonLink, Mark } from '@growthmak/ui';
+
 /**
  * The page a magic-link email actually points at.
  *
@@ -35,25 +37,20 @@ export default async function VerifyPage({
 
   return (
     <main className="max-w-page mx-auto px-5 py-8">
-      <div className="border-b border-rule pb-3 mb-6">
-        <span
-          className="font-narrow uppercase text-signal"
-          style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em' }}
-        >
-          Growthmak
-        </span>
-        <span className="font-narrow uppercase text-pencil" style={{ fontSize: 11, letterSpacing: '0.16em' }}>
-          {' '}
-          / Change Ledger
+      <div className="flex items-center gap-3 mb-8">
+        <Mark />
+        <span>
+          <span className="block text-ink text-head font-bold tracking-snug">Change Ledger</span>
+          <span className="block text-pencil text-meta font-medium">Growthmak</span>
         </span>
       </div>
 
-      <div className="bg-sheet border border-rule px-6 py-6 max-w-md grid gap-5">
+      <div className="bg-sheet rounded-card shadow-card px-6 py-6 max-w-md grid gap-5">
         <div>
-          <h1 className="font-sans text-ink" style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.025em' }}>
+          <h1 className="text-ink text-title font-extrabold tracking-tight">
             {ready ? 'Finish signing in' : 'That link is incomplete'}
           </h1>
-          <p className="font-sans text-pencil mt-2" style={{ fontSize: '13.5px', lineHeight: 1.55 }}>
+          <p className="text-pencil text-body mt-2">
             {ready
               ? `One tap to sign in as ${email}.`
               : 'It is missing part of its address, which usually means an email client shortened it. Ask for a new link and open it from the email directly.'}
@@ -61,25 +58,16 @@ export default async function VerifyPage({
         </div>
 
         {ready ? (
-          <a
-            href={callback}
-            rel="nofollow noreferrer"
-            className="inline-flex items-center justify-center rounded-control font-sans font-semibold bg-signal text-white hover:opacity-90 px-6 py-3"
-            style={{ fontSize: '13.5px', minHeight: 44 }}
-          >
+          <ButtonLink href={callback} rel="nofollow noreferrer" className="w-full">
             Sign in
-          </a>
+          </ButtonLink>
         ) : (
-          <a
-            href="/login"
-            className="inline-flex items-center justify-center rounded-control font-sans font-semibold bg-transparent text-ink border border-rule hover:border-signal px-6 py-3"
-            style={{ fontSize: '13.5px', minHeight: 44 }}
-          >
+          <ButtonLink href="/login" variant="ghost" className="w-full">
             Request a new link
-          </a>
+          </ButtonLink>
         )}
 
-        <p className="font-sans text-pencil" style={{ fontSize: 12, lineHeight: 1.5 }}>
+        <p className="text-pencil text-meta">
           Opening this page does not use the link up — only the button does, so it still works if
           your email provider previewed it first.
         </p>

@@ -1,3 +1,4 @@
+import { Button, FieldLabel, Mark, TextInput } from '@growthmak/ui';
 import { googleConfigured } from '@/auth';
 import { signInWithDev, signInWithGoogle, signInWithMagicLink } from './actions';
 
@@ -23,25 +24,18 @@ export default async function LoginPage({
 
   return (
     <main className="max-w-page mx-auto px-5 py-8">
-      <div className="border-b border-rule pb-3 mb-6">
-        <span
-          className="font-narrow uppercase text-signal"
-          style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em' }}
-        >
-          Growthmak
-        </span>
-        <span className="font-narrow uppercase text-pencil" style={{ fontSize: 11, letterSpacing: '0.16em' }}>
-          {' '}
-          / Change Ledger
+      <div className="flex items-center gap-3 mb-8">
+        <Mark />
+        <span>
+          <span className="block text-ink text-head font-bold tracking-snug">Change Ledger</span>
+          <span className="block text-pencil text-meta font-medium">Growthmak</span>
         </span>
       </div>
 
-      <div className="bg-sheet border border-rule px-6 py-6 max-w-md grid gap-6">
+      <div className="bg-sheet rounded-card shadow-card px-6 py-6 max-w-md grid gap-6">
         <div>
-          <h1 className="font-sans text-ink" style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.025em' }}>
-            Sign in
-          </h1>
-          <p className="font-sans text-pencil mt-2" style={{ fontSize: '13.5px', lineHeight: 1.55 }}>
+          <h1 className="text-ink text-title font-extrabold tracking-tight">Sign in</h1>
+          <p className="text-pencil text-body mt-2">
             {googleConfigured
               ? 'Clients get a one-tap link by email. Growthmak signs in with a growthmak.com Google account.'
               : 'Sign in with a one-tap link by email.'}
@@ -49,87 +43,66 @@ export default async function LoginPage({
         </div>
 
         {error ? (
-          <p className="text-over font-sans" style={{ fontSize: 13 }} role="alert">
+          <p className="text-over text-body font-medium" role="alert">
             {ERROR_MESSAGES[error] ?? ERROR_MESSAGES.Default}
           </p>
         ) : null}
 
         <form action={signInWithMagicLink} className="grid gap-3">
           <div>
-            <label
-              htmlFor="login-email"
-              className="block font-narrow uppercase text-pencil mb-2"
-              style={{ fontSize: '9.5px', letterSpacing: '0.12em' }}
-            >
-              Email
-            </label>
-            <input
+            <FieldLabel htmlFor="login-email">Email</FieldLabel>
+            <TextInput
               id="login-email"
               name="email"
               type="email"
               required
               placeholder="you@company.com"
               autoComplete="email"
-              className="w-full rounded-sm border border-rule bg-stock text-ink font-sans px-3 py-3 placeholder:text-pencil-2 focus:outline-none focus:border-signal focus:bg-sheet"
-              style={{ fontSize: '13.5px', minHeight: 44 }}
             />
           </div>
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-control font-sans font-semibold bg-signal text-white hover:opacity-90 px-6 py-3"
-            style={{ fontSize: '13.5px', minHeight: 44 }}
-          >
+          <Button type="submit" className="w-full">
             Email me a link
-          </button>
+          </Button>
         </form>
 
         {/* Only offered when it can actually work — a button that returns a
             server error is worse than no button. */}
         {googleConfigured ? (
           <>
-            <div className="flex items-center gap-3 text-pencil font-narrow uppercase" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
+            <div className="flex items-center gap-4 text-pencil text-meta font-semibold">
               <span className="h-px bg-rule flex-1" />
               or
               <span className="h-px bg-rule flex-1" />
             </div>
 
             <form action={signInWithGoogle}>
-              <button
-                type="submit"
-                className="w-full inline-flex items-center justify-center rounded-control font-sans font-semibold bg-transparent text-ink border border-rule hover:border-signal hover:text-signal px-6 py-3"
-                style={{ fontSize: '13.5px', minHeight: 44 }}
-              >
+              <Button type="submit" variant="ghost" className="w-full">
                 Continue with Google
-              </button>
+              </Button>
             </form>
           </>
         ) : null}
 
         {isDev ? (
-          <div className="border-t border-dashed border-rule pt-4 grid gap-2">
-            <p className="font-narrow uppercase text-pencil" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
+          <div className="border-t border-rule pt-5 grid gap-2">
+            <p className="text-pencil text-meta font-semibold">
               Dev sign-in — local only, disabled in production
             </p>
-            <p className="font-sans text-pencil" style={{ fontSize: 12, lineHeight: 1.5 }}>
+            <p className="text-pencil text-meta">
               Any @growthmak.com address signs in as team; anything else signs in as client. First
               use of an email creates it.
             </p>
             <form action={signInWithDev} className="flex gap-2">
-              <input
+              <TextInput
                 id="dev-email"
                 name="email"
                 type="email"
                 defaultValue="delivery@growthmak.com"
-                className="flex-1 rounded-sm border border-rule bg-stock text-ink font-mono px-3 py-2 focus:outline-none focus:border-signal focus:bg-sheet"
-                style={{ fontSize: 12, minHeight: 40 }}
+                className="flex-1 min-w-0"
               />
-              <button
-                type="submit"
-                className="rounded-control border border-rule px-4 py-2 font-mono hover:border-signal"
-                style={{ fontSize: 12, minHeight: 40 }}
-              >
+              <Button type="submit" variant="ghost">
                 Sign in
-              </button>
+              </Button>
             </form>
           </div>
         ) : null}

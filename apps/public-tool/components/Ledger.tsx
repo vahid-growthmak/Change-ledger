@@ -20,10 +20,13 @@ import {
   type RequestType,
 } from '@growthmak/core';
 import {
+  Badge,
   Button,
+  Mark,
   Distribution,
   EmptyState,
   FilterChip,
+  InkSheet,
   Sheet,
   SheetHead,
   Meter,
@@ -95,14 +98,12 @@ export function Ledger() {
       <main className="max-w-page mx-auto px-5 py-8">
         <Masthead />
         <div className="mt-8" style={{ maxWidth: 720 }}>
-          <h1 className="font-sans text-ink text-title" style={{ fontWeight: 600, letterSpacing: '-0.025em' }}>
-            Set up your ledger
-          </h1>
-          <p className="font-sans text-pencil text-body mt-2 max-w-measure">
+          <h1 className="text-ink text-title font-extrabold tracking-tight">Set up your ledger</h1>
+          <p className="text-pencil text-body mt-2 max-w-measure">
             Name the engagement, set the agreed hours and rate, and start logging every change request
             against them. Everything stays in this browser — nothing is sent anywhere.
           </p>
-          <div className="bg-sheet border border-rule px-5 py-5 mt-5">
+          <div className="bg-sheet rounded-card shadow-card px-6 py-6 mt-6">
             <SettingsForm initial={null} onSave={(p) => { ledger.saveProject(p); showToast('Ledger ready'); }} />
           </div>
         </div>
@@ -137,31 +138,29 @@ export function Ledger() {
     <main className="max-w-page mx-auto px-5 py-8 grid gap-6">
       <header>
         <Masthead />
-        <div className="flex flex-wrap items-baseline gap-3 mt-4">
-          <h1 className="font-sans text-ink" style={{ fontSize: 'clamp(21px, 3vw, 26px)', fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.15 }}>
-            {project.projectName}
-          </h1>
-          <span className="font-sans text-pencil" style={{ fontSize: '14.5px' }}>
-            {project.clientName}
-          </span>
-          <span className="font-narrow uppercase text-pencil" style={{ fontSize: '9.5px', letterSpacing: '0.13em' }}>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-6">
+          <h1 className="text-ink text-title font-extrabold tracking-tight">{project.projectName}</h1>
+          <span className="text-pencil text-body">{project.clientName}</span>
+          <Badge>
             {project.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
             {periodLabel ? ` · ${periodLabel}` : ''}
-          </span>
+          </Badge>
         </div>
       </header>
 
       {/* Readout — the answer before the detail (M4, M6) */}
       <ReadoutRow>
-        <ReadoutCell label="Requests logged" value={String(totals!.requestCount)} />
-        <ReadoutCell label="Beyond scope" value={String(totals!.beyondCount)} breached={breached} />
+        <ReadoutCell icon="requests" label="Requests logged" value={String(totals!.requestCount)} />
+        <ReadoutCell icon="beyond" label="Beyond scope" value={String(totals!.beyondCount)} breached={breached} />
         <ReadoutCell
+          icon="hours"
           label="Extra hours"
           value={formatHours(totals!.beyondHours)}
           unit={hoursUnit(totals!.beyondHours)}
           breached={breached}
         />
         <ReadoutCell
+          icon="cost"
           label="Additional cost"
           value={formatMoneyMinor(totals!.additionalCostMinor, project.currency)}
           breached={breached}
@@ -169,8 +168,11 @@ export function Ledger() {
       </ReadoutRow>
 
       {/* The meter (M1–M3) */}
-      <section className="bg-sheet border border-rule px-6 pt-6 pb-5" aria-label="Hours against agreement">
+      <InkSheet className="on-ink">
+        <SheetHead onInk>Hours against agreement</SheetHead>
+        <section className="px-6 pt-2 pb-6" aria-label="Hours against agreement">
         <Meter
+          tone="ink"
           contractedHours={project.contractedHours}
           inScopeHours={totals!.inScopeHours}
           pendingHours={totals!.pendingHours}
@@ -179,17 +181,18 @@ export function Ledger() {
           lineLabel={lineLabel}
           ariaLabel={`${formatHours(totals!.inScopeHours)} hours in scope, ${formatHours(totals!.pendingHours)} hours pending review, ${formatHours(totals!.beyondHours)} hours beyond scope, against ${formatHours(project.contractedHours)} agreed hours.`}
         />
-        <MeterLegend pendingNote="Pending review — not yet counted either way" />
+        <MeterLegend tone="ink" pendingNote="Pending review — not yet counted either way" />
         {project.mode === 'retainer' ? (
-          <p className="font-sans text-pencil mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
+          <p className="text-on-ink-soft text-meta mt-4 max-w-measure">
             The meter counts {periodLabel}. It resets each cycle; the full history stays in the list below.
           </p>
         ) : null}
-      </section>
+        </section>
+      </InkSheet>
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap" role="group" aria-label="View">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="View">
           <FilterChip pressed={view === 'client'} onClick={() => { setView('client'); setSettingsOpen(false); }}>
             Client view
           </FilterChip>
@@ -199,10 +202,10 @@ export function Ledger() {
         </div>
         {view === 'team' ? (
           <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" small onClick={exportCsv}>
+            <Button variant="ghost" onClick={exportCsv}>
               Export CSV
             </Button>
-            <Button variant="ghost" small onClick={() => setSettingsOpen((o) => !o)}>
+            <Button variant="ghost" onClick={() => setSettingsOpen((o) => !o)}>
               {settingsOpen ? 'Close settings' : 'Settings'}
             </Button>
           </div>
@@ -210,10 +213,8 @@ export function Ledger() {
       </div>
 
       {view === 'team' && settingsOpen ? (
-        <section className="bg-sheet border border-rule px-6 py-6" aria-label="Project settings">
-          <h2 className="font-sans text-ink mb-4" style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>
-            Project settings
-          </h2>
+        <section className="bg-sheet rounded-card shadow-card px-6 py-6" aria-label="Project settings">
+          <h2 className="text-ink text-head font-bold tracking-snug mb-5">Project settings</h2>
           <SettingsForm
             initial={project}
             onSave={(p) => {
@@ -239,7 +240,7 @@ export function Ledger() {
       {/* Filters (O4) */}
       {requests.length > 0 ? (
         <section aria-label="Filters" className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center">
+          <div className="flex flex-wrap items-center gap-2">
             <FilterChip pressed={filter === 'all'} onClick={() => setFilter('all')}>
               All
             </FilterChip>
@@ -284,7 +285,7 @@ export function Ledger() {
       <Sheet>
         <SheetHead
           right={
-            <span className="font-mono text-pencil tabular" style={{ fontSize: 11 }}>
+            <span className="text-pencil text-meta font-semibold tabular">
               {filtered.length === requests.length ? `${requests.length}` : `${filtered.length} / ${requests.length}`}
             </span>
           }
@@ -340,8 +341,8 @@ export function Ledger() {
 
       {view === 'team' ? <Distribution requests={requests} /> : null}
 
-      <footer className="border-t border-rule pt-5 mt-2">
-        <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55, maxWidth: 560 }}>
+      <footer className="border-t border-rule pt-6 mt-2">
+        <p className="text-pencil text-body" style={{ maxWidth: 560 }}>
           This ledger lives in your browser only — nothing you type leaves it. It is the free version
           of the shared ledger Growthmak runs with every client engagement.
         </p>
@@ -354,13 +355,11 @@ export function Ledger() {
 
 function Masthead() {
   return (
-    <div className="border-b border-rule pb-3">
-      <span className="font-narrow uppercase text-signal" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em' }}>
-        Growthmak
-      </span>
-      <span className="font-narrow uppercase text-pencil" style={{ fontSize: 11, letterSpacing: '0.16em' }}>
-        {' '}
-        / Change Ledger
+    <div className="flex items-center gap-3">
+      <Mark />
+      <span>
+        <span className="block text-ink text-head font-bold tracking-snug">Change Ledger</span>
+        <span className="block text-pencil text-meta font-medium">Growthmak</span>
       </span>
     </div>
   );

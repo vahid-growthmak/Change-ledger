@@ -27,6 +27,7 @@ import {
   EmptyState,
   type AttachmentMeta,
   FilterChip,
+  InkSheet,
   Meter,
   MeterLegend,
   ReadoutCell,
@@ -191,15 +192,17 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
     <div className="grid gap-6">
       {readout.kind === 'team' ? (
         <ReadoutRow>
-          <ReadoutCell label="Requests logged" value={String(readout.totals.requestCount)} />
-          <ReadoutCell label="Beyond scope" value={String(readout.totals.beyondCount)} breached={breached} />
+          <ReadoutCell icon="requests" label="Requests logged" value={String(readout.totals.requestCount)} />
+          <ReadoutCell icon="beyond" label="Beyond scope" value={String(readout.totals.beyondCount)} breached={breached} />
           <ReadoutCell
+            icon="hours"
             label="Extra hours"
             value={formatHours(readout.totals.beyondHours)}
             unit={hoursUnit(readout.totals.beyondHours)}
             breached={breached}
           />
           <ReadoutCell
+            icon="cost"
             label="Additional cost"
             value={formatMoneyMinor(readout.totals.additionalCostMinor, readout.currency)}
             breached={breached}
@@ -207,8 +210,8 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
         </ReadoutRow>
       ) : (
         <ReadoutRow>
-          <ReadoutCell label="Requests logged" value={String(readout.requestCount)} />
-          <ReadoutCell label="Beyond scope" value={String(readout.beyondCount)} breached={breached} />
+          <ReadoutCell icon="requests" label="Requests logged" value={String(readout.requestCount)} />
+          <ReadoutCell icon="beyond" label="Beyond scope" value={String(readout.beyondCount)} breached={breached} />
         </ReadoutRow>
       )}
 
@@ -216,10 +219,11 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
           exists where hours and the contracted line do. Without them there is
           no scale and no reference — a bar with neither would say nothing. */}
       {readout.kind === 'team' ? (
-        <Sheet>
-          <SheetHead>Hours against agreement</SheetHead>
-          <section className="px-5 pt-7 pb-5" aria-label="Hours against agreement">
+        <InkSheet className="on-ink">
+          <SheetHead onInk>Hours against agreement</SheetHead>
+          <section className="px-6 pt-2 pb-6" aria-label="Hours against agreement">
           <Meter
+            tone="ink"
             contractedHours={readout.contractedHours}
             inScopeHours={readout.totals.inScopeHours}
             pendingHours={readout.totals.pendingHours}
@@ -232,14 +236,14 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
             }
             ariaLabel={`${formatHours(readout.totals.inScopeHours)} hours in scope, ${formatHours(readout.totals.pendingHours)} hours pending review, ${formatHours(readout.totals.beyondHours)} hours beyond scope, against ${formatHours(readout.contractedHours)} agreed hours.`}
           />
-          <MeterLegend pendingNote="Pending review — not yet counted either way" />
+          <MeterLegend tone="ink" pendingNote="Pending review — not yet counted either way" />
           {project.mode === 'retainer' ? (
-            <p className="font-sans text-pencil mt-3" style={{ fontSize: 13, lineHeight: 1.55 }}>
+            <p className="text-on-ink-soft text-meta mt-4 max-w-measure">
               The meter counts {periodLabel}. It resets each cycle; the full history stays in the list below.
             </p>
           ) : null}
           </section>
-        </Sheet>
+        </InkSheet>
       ) : null}
 
       <SubmitForm onSubmit={handleCreate} onUploadAttachment={handleUpload} />
@@ -250,7 +254,7 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
 
       {optimisticRequests.length > 0 ? (
         <section aria-label="Filters" className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center">
+          <div className="flex flex-wrap items-center gap-2">
             <FilterChip pressed={filter === 'all'} onClick={() => setFilter('all')}>
               All
             </FilterChip>
@@ -294,7 +298,7 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
       <Sheet>
         <SheetHead
           right={
-            <span className="font-mono text-pencil tabular" style={{ fontSize: 11 }}>
+            <span className="text-pencil text-meta font-semibold tabular">
               {filtered.length === optimisticRequests.length
                 ? `${optimisticRequests.length}`
                 : `${filtered.length} / ${optimisticRequests.length}`}
@@ -351,7 +355,7 @@ export function LedgerView({ projectId, slug, project, requests, readout, period
                     <>
                       <TriageRow request={r} onTriage={(patch) => handleTriage(r.id, patch)} />
                       {triageError[r.id] ? (
-                        <p className="text-over font-sans mt-2" style={{ fontSize: 13 }} role="alert">
+                        <p className="text-over text-meta font-medium mt-2" role="alert">
                           {triageError[r.id]}
                         </p>
                       ) : null}

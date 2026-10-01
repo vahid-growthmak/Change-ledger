@@ -3,6 +3,7 @@ import { db, requests as requestsTable } from '@growthmak/db';
 import { eq } from 'drizzle-orm';
 import { requireProjectAccess } from '@/lib/authz';
 import { toChangeRequest, toProjectConfig } from '@/lib/serialize';
+import { ButtonLink } from '@growthmak/ui';
 import { AppHeader } from '@/components/AppHeader';
 import { LedgerView } from '@/components/LedgerView';
 
@@ -55,58 +56,47 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         <AppHeader session={session} crumb={project.projectName} />
 
         {/*
-          The title block. A manifest names its document and then states its
-          particulars in ruled boxes — so the project name is the document
-          title, and client, engagement and period are filled fields beneath
-          it rather than a row of grey metadata floating under a heading.
+          The title block. The console names what you are looking at, states
+          its particulars in one card of cells beneath, and puts the two
+          actions that act on the whole project alongside the title — so the
+          page opens with what it is before it opens with what it counts.
         */}
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
-          <h1
-            className="font-sans text-ink text-title min-w-0"
-            style={{ fontWeight: 600, letterSpacing: '-0.025em' }}
-          >
-            {project.projectName}
-          </h1>
+        <div className="flex flex-wrap items-end justify-between gap-4 mt-6 mb-5">
+          <div className="min-w-0">
+            <h1 className="text-ink text-title font-extrabold tracking-tight min-w-0">
+              {project.projectName}
+            </h1>
+            <p className="text-pencil text-body mt-1">{project.clientName}</p>
+          </div>
           {session.role === 'team' ? (
-            <div className="flex gap-2">
-              <a
-                href={`/${project.slug}/export`}
-                className="inline-flex items-center rounded-control font-sans font-semibold bg-transparent
-                  text-ink border border-rule hover:border-ink hover:bg-stock-2 px-4 py-2
-                  transition-colors duration-150"
-                style={{ fontSize: 12, minHeight: 44 }}
-              >
+            <div className="flex flex-wrap gap-3">
+              <ButtonLink variant="ghost" href={`/${project.slug}/export`}>
                 Export CSV
-              </a>
-              <a
-                href={`/${project.slug}/settings`}
-                className="inline-flex items-center rounded-control font-sans font-semibold bg-transparent
-                  text-ink border border-rule hover:border-ink hover:bg-stock-2 px-4 py-2
-                  transition-colors duration-150"
-                style={{ fontSize: 12, minHeight: 44 }}
-              >
+              </ButtonLink>
+              <ButtonLink variant="ghost" href={`/${project.slug}/settings`}>
                 Settings
-              </a>
+              </ButtonLink>
             </div>
           ) : null}
         </div>
 
-        <dl className="grid grid-cols-2 sm:grid-cols-3 border border-rule bg-sheet divide-x divide-y sm:divide-y-0 divide-rule">
-          <div className="px-5 py-3 min-w-0">
-            <dt className="font-narrow uppercase text-pencil text-label tracking-label">Client</dt>
-            <dd className="font-sans text-ink text-body mt-0.5 truncate">{project.clientName}</dd>
+        <dl className="grid grid-cols-2 sm:grid-cols-3 bg-sheet rounded-card shadow-card overflow-hidden
+          divide-x divide-y sm:divide-y-0 divide-rule">
+          <div className="px-6 py-5 min-w-0">
+            <dt className="text-pencil text-meta font-semibold">Client</dt>
+            <dd className="text-ink text-body font-medium mt-1 truncate">{project.clientName}</dd>
           </div>
-          <div className="px-5 py-3 min-w-0">
-            <dt className="font-narrow uppercase text-pencil text-label tracking-label">Engagement</dt>
-            <dd className="font-sans text-ink text-body mt-0.5 truncate">
+          <div className="px-6 py-5 min-w-0">
+            <dt className="text-pencil text-meta font-semibold">Engagement</dt>
+            <dd className="text-ink text-body font-medium mt-1 truncate">
               {project.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
             </dd>
           </div>
-          <div className="px-5 py-3 min-w-0">
-            <dt className="font-narrow uppercase text-pencil text-label tracking-label">
+          <div className="px-6 py-5 min-w-0">
+            <dt className="text-pencil text-meta font-semibold">
               {periodLabel ? 'Period' : 'Reference'}
             </dt>
-            <dd className="font-mono text-ink text-body mt-0.5 truncate tabular">
+            <dd className="text-ink text-body font-medium mt-1 truncate tabular">
               {periodLabel ?? project.slug}
             </dd>
           </div>

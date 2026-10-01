@@ -54,7 +54,7 @@ export function SubmitForm({ onSubmit, onUploadAttachment }: SubmitFormProps) {
   return (
     <Sheet>
       <SheetHead>Log a change request</SheetHead>
-      <section className="px-5 py-5" aria-label="Log a change request">
+      <section className="px-6 pb-6" aria-label="Log a change request">
         <InlineError>{error}</InlineError>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div>
@@ -131,12 +131,12 @@ export function SubmitForm({ onSubmit, onUploadAttachment }: SubmitFormProps) {
             <Button type="submit" disabled={pending}>
               {pending ? 'Logging…' : 'Log this request'}
             </Button>
-            <Button type="button" variant="ghost" small onClick={() => setMoreOpen((o) => !o)}>
+            <Button type="button" variant="ghost" onClick={() => setMoreOpen((o) => !o)}>
               {moreOpen ? 'Hide extra detail' : 'Add detail or a link'}
             </Button>
           </div>
         </form>
-        <p className="font-sans text-pencil text-meta mt-4 max-w-measure">
+        <p className="text-pencil text-meta mt-5 max-w-measure">
           One line is enough. The description is the only thing required.
         </p>
       </section>

@@ -94,11 +94,11 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
   if (!open) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="ghost" small onClick={() => setOpen(true)}>
+        <Button variant="ghost" onClick={() => setOpen(true)}>
           Log from a meeting transcript
         </Button>
         {done !== null ? (
-          <span className="font-mono text-clear" style={{ fontSize: 12 }}>
+          <span className="text-clear text-meta font-semibold">
             Logged {done} {done === 1 ? 'request' : 'requests'}
           </span>
         ) : null}
@@ -110,24 +110,21 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
 
   return (
     <section
-      className="bg-sheet border border-rule px-6 py-6"
+      className="bg-sheet rounded-card shadow-card px-6 py-6"
       aria-label="Log from a meeting transcript"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="font-sans text-ink" style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>
-          Log from a meeting transcript
-        </h2>
-        <button
+        <h2 className="text-ink text-head font-bold tracking-snug">Log from a meeting transcript</h2>
+        <Button
           type="button"
+          variant="quiet"
           onClick={() => {
             reset();
             setOpen(false);
           }}
-          className="font-mono text-pencil underline"
-          style={{ fontSize: 11 }}
         >
           Close
-        </button>
+        </Button>
       </div>
 
       <InlineError>{error}</InlineError>
@@ -151,7 +148,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
               {extracting ? 'Reading the transcript…' : 'Find change requests'}
             </Button>
           </div>
-          <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55 }}>
+          <p className="text-pencil text-body max-w-measure">
             Nothing is logged from this step. You&apos;ll get a list to check and edit first —
             anything read wrongly is yours to fix or drop before it reaches the ledger.
           </p>
@@ -159,17 +156,15 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
       ) : (
         <div className="mt-4 grid gap-4">
           {notes ? (
-            <div className="bg-wash-signal px-4 py-3">
+            <div className="rounded-control bg-wash-signal px-5 py-4">
               <PanelLabel>Worth knowing</PanelLabel>
-              <p className="font-sans text-ink mt-1" style={{ fontSize: 13, lineHeight: 1.55 }}>
-                {notes}
-              </p>
+              <p className="text-ink text-body mt-1 max-w-measure">{notes}</p>
             </div>
           ) : null}
 
           {candidates.length === 0 ? (
-            <div className="border border-dashed border-rule py-8 px-6 text-center">
-              <p className="mx-auto text-pencil font-sans" style={{ maxWidth: 400, fontSize: '13.5px', lineHeight: 1.55 }}>
+            <div className="rounded-control bg-stock py-8 px-6 text-center">
+              <p className="mx-auto text-pencil text-body" style={{ maxWidth: 400 }}>
                 No change requests in that transcript. If you expected some, they may have been
                 phrased as discussion rather than asks — check the text, or log them by hand.
               </p>
@@ -183,11 +178,11 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
                 {candidates.map((c, i) => (
                   <article
                     key={i}
-                    className="border border-rule px-4 py-4 grid gap-3"
+                    className="rounded-card bg-stock px-5 py-5 grid gap-4 transition-opacity duration-200 ease-soft"
                     style={{ opacity: c.keep ? 1 : 0.5 }}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <label className="flex items-center gap-2 font-mono" style={{ fontSize: '10.5px' }}>
+                      <label className="flex items-center gap-2 text-meta font-semibold text-pencil">
                         <input
                           type="checkbox"
                           checked={c.keep}
@@ -255,10 +250,7 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
                     {c.quote ? (
                       <div>
                         <PanelLabel>Said on the call</PanelLabel>
-                        <blockquote
-                          className="font-sans text-pencil border-l-2 border-rule pl-3 mt-1"
-                          style={{ fontSize: 13, lineHeight: 1.55 }}
-                        >
+                        <blockquote className="rounded-control bg-sheet text-pencil text-body px-4 py-3 mt-1 max-w-measure">
                           {c.quote}
                         </blockquote>
                       </div>
@@ -277,12 +269,12 @@ export function TranscriptImport({ projectId }: { projectId: string }) {
                   : `Log ${keptCount} ${keptCount === 1 ? 'request' : 'requests'}`}
               </Button>
             ) : null}
-            <Button type="button" variant="ghost" small onClick={reset} disabled={saving}>
+            <Button type="button" variant="ghost" onClick={reset} disabled={saving}>
               Start over
             </Button>
           </div>
           {candidates.length > 0 ? (
-            <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55 }}>
+            <p className="text-pencil text-body max-w-measure">
               These log as pending review, like any other request — finding them isn&apos;t triaging
               them.
             </p>

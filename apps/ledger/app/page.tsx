@@ -3,6 +3,7 @@ import { db, projectMembers, projects } from '@growthmak/db';
 import { and, eq, isNull } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import { AppHeader } from '@/components/AppHeader';
+import { Badge } from '@growthmak/ui';
 import { NewProjectForm } from '@/components/NewProjectForm';
 
 export default async function HomePage() {
@@ -21,8 +22,8 @@ export default async function HomePage() {
     return (
       <main className="max-w-page mx-auto px-5 py-8">
         <AppHeader session={session} />
-        <div className="border border-dashed border-rule py-8 px-6 text-center">
-          <p className="mx-auto text-pencil font-sans" style={{ maxWidth: 400, fontSize: '13.5px', lineHeight: 1.55 }}>
+        <div className="bg-sheet rounded-card shadow-card py-10 px-6 text-center mt-6">
+          <p className="mx-auto text-pencil text-body" style={{ maxWidth: 400 }}>
             No project yet. Ask your Growthmak contact to add you — you'll land here automatically
             once they do.
           </p>
@@ -39,26 +40,26 @@ export default async function HomePage() {
     <main className="max-w-page mx-auto px-5 py-8 grid gap-6">
       <AppHeader session={session} />
 
-      <section aria-label="Projects" className="bg-sheet border border-rule overflow-hidden">
+      <section aria-label="Projects" className="bg-sheet rounded-card shadow-card overflow-hidden">
         {active.length === 0 ? (
-          <p className="font-sans text-pencil px-6 py-6" style={{ fontSize: '13.5px' }}>
-            No projects yet — create the first one below.
-          </p>
+          <p className="text-pencil text-body px-6 py-6">No projects yet — create the first one below.</p>
         ) : (
-          <table className="w-full" style={{ fontSize: '13.5px' }}>
-            <tbody>
+          <table className="w-full">
+            <tbody className="divide-y divide-rule-soft">
               {active.map((p) => (
-                <tr key={p.id} className="border-b border-rule last:border-0">
-                  <td className="px-6 py-4">
-                    <a href={`/${p.slug}`} className="font-sans text-ink font-medium hover:text-signal">
+                <tr key={p.id} className="transition-colors duration-200 ease-soft hover:bg-stock/60">
+                  <td className="px-6 py-5">
+                    <a
+                      href={`/${p.slug}`}
+                      className="text-ink text-entry font-semibold tracking-snug hover:text-signal
+                        transition-colors duration-200 ease-soft"
+                    >
                       {p.projectName}
                     </a>
-                    <div className="font-mono text-pencil" style={{ fontSize: 11 }}>
-                      {p.clientName}
-                    </div>
+                    <div className="text-pencil text-meta font-medium mt-0.5">{p.clientName}</div>
                   </td>
-                  <td className="px-6 py-4 font-narrow uppercase text-pencil text-right" style={{ fontSize: 10.5, letterSpacing: '0.08em' }}>
-                    {p.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}
+                  <td className="px-6 py-5 text-right">
+                    <Badge>{p.mode === 'foundation' ? 'Foundation Build' : 'Growth Marketing'}</Badge>
                   </td>
                 </tr>
               ))}
@@ -69,12 +70,10 @@ export default async function HomePage() {
 
       {archived.length > 0 ? (
         <section aria-label="Archived projects">
-          <p className="font-narrow uppercase text-pencil mb-2" style={{ fontSize: 9.5, letterSpacing: '0.12em' }}>
-            Archived
-          </p>
+          <p className="text-pencil text-meta font-semibold mb-3">Archived</p>
           <ul className="grid gap-1">
             {archived.map((p) => (
-              <li key={p.id} className="font-sans text-pencil" style={{ fontSize: 13 }}>
+              <li key={p.id} className="text-pencil text-body">
                 {p.projectName} — {p.clientName}
               </li>
             ))}
@@ -82,10 +81,8 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      <section className="bg-sheet border border-rule px-6 py-6">
-        <h2 className="font-sans text-ink mb-4" style={{ fontSize: 15, fontWeight: 600 }}>
-          New project
-        </h2>
+      <section className="bg-sheet rounded-card shadow-card px-6 py-6">
+        <h2 className="text-ink text-head font-bold tracking-snug mb-5">New project</h2>
         <NewProjectForm />
       </section>
     </main>

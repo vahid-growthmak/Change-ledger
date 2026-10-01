@@ -12,6 +12,7 @@ import {
   type TriagePatch,
 } from '@growthmak/core';
 import { FieldLabel, InlineSelect } from './fields';
+import { CONTROL_SM } from './primitives';
 
 interface TriageRowProps {
   request: ChangeRequest;
@@ -21,9 +22,9 @@ interface TriageRowProps {
 /**
  * Inline triage: scope, layer, hours, status (T1–T5). Team view only.
  *
- * The four controls sit in one ruled band beneath the entry, the way a form's
- * office-use block sits under the part the requester filled in. Hours are a
- * measured value, so they are set in Courier like every other measurement.
+ * The four controls sit in one band beneath the entry, divided from it by the
+ * only hairline the entry carries. Hours are tabular, like every other
+ * measured value, so the column holds as the number changes.
  */
 export function TriageRow({ request, onTriage }: TriageRowProps) {
   return (
@@ -76,9 +77,10 @@ export function TriageRow({ request, onTriage }: TriageRowProps) {
               onTriage({ hours: Math.round(n * 2) / 2 });
             }
           }}
-          className="w-full rounded-sm border border-rule bg-sheet text-ink font-mono tabular px-2
-            focus:outline-none focus:border-signal focus:ring-1 focus:ring-signal transition-colors duration-150"
-          style={{ fontSize: 13, minHeight: 44 }}
+          className="w-full rounded-control border border-rule bg-stock text-ink text-meta font-semibold
+            tabular px-3 focus:outline-none focus:border-signal focus:bg-sheet focus:shadow-focus
+            transition-all duration-200 ease-soft"
+          style={{ height: CONTROL_SM }}
         />
       </div>
       <div>

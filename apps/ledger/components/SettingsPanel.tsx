@@ -65,10 +65,8 @@ function ProjectSettingsForm({ projectId, initial }: SettingsPanelProps) {
   }
 
   return (
-    <section className="bg-sheet border border-rule px-6 py-6">
-      <h2 className="font-sans text-ink mb-4" style={{ fontSize: 15, fontWeight: 600 }}>
-        Project settings
-      </h2>
+    <section className="bg-sheet rounded-card shadow-card px-6 py-6">
+      <h2 className="text-ink text-head font-bold tracking-snug mb-5">Project settings</h2>
       <form onSubmit={handleSubmit} className="grid gap-4">
         <InlineError>{error}</InlineError>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -83,7 +81,7 @@ function ProjectSettingsForm({ projectId, initial }: SettingsPanelProps) {
         </div>
         <div>
           <FieldLabel>Engagement</FieldLabel>
-          <div className="flex gap-3" role="group" aria-label="Engagement mode">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Engagement mode">
             <FilterChip pressed={mode === 'foundation'} onClick={() => setMode('foundation')}>
               Foundation Build — fixed scope
             </FilterChip>
@@ -117,9 +115,7 @@ function ProjectSettingsForm({ projectId, initial }: SettingsPanelProps) {
             {pending ? 'Saving…' : 'Save settings'}
           </Button>
           {saved ? (
-            <span className="font-mono text-clear" style={{ fontSize: 12 }}>
-              Saved
-            </span>
+            <span className="text-clear text-meta font-semibold">Saved</span>
           ) : null}
         </div>
       </form>
@@ -155,11 +151,9 @@ function InviteForm({ projectId }: { projectId: string }) {
   }
 
   return (
-    <section className="bg-sheet border border-rule px-6 py-6">
-      <h2 className="font-sans text-ink mb-2" style={{ fontSize: 15, fontWeight: 600 }}>
-        Invite a client
-      </h2>
-      <p className="font-sans text-pencil mb-4" style={{ fontSize: 13, lineHeight: 1.55 }}>
+    <section className="bg-sheet rounded-card shadow-card px-6 py-6">
+      <h2 className="text-ink text-head font-bold tracking-snug mb-2">Invite a client</h2>
+      <p className="text-pencil text-body mb-5 max-w-measure">
         They sign in with this email using the magic link on the login page — no password, no
         registration.
       </p>
@@ -181,9 +175,7 @@ function InviteForm({ projectId }: { projectId: string }) {
         </Button>
       </form>
       {invited ? (
-        <p className="font-sans text-clear mt-3" style={{ fontSize: 13, lineHeight: 1.5 }}>
-          {invited}
-        </p>
+        <p className="text-clear text-body font-medium mt-4 max-w-measure">{invited}</p>
       ) : null}
     </section>
   );
@@ -204,11 +196,9 @@ function ArchivePanel({ projectId }: { projectId: string }) {
   }
 
   return (
-    <section className="border border-dashed border-rule px-6 py-6">
-      <h2 className="font-sans text-ink mb-2" style={{ fontSize: 15, fontWeight: 600 }}>
-        Archive project
-      </h2>
-      <p className="font-sans text-pencil mb-4" style={{ fontSize: 13, lineHeight: 1.55 }}>
+    <section className="bg-sheet rounded-card shadow-card px-6 py-6">
+      <h2 className="text-ink text-head font-bold tracking-snug mb-2">Archive project</h2>
+      <p className="text-pencil text-body mb-5 max-w-measure">
         Removes it from the active list. The full request history and audit trail are kept.
       </p>
       <Button type="button" variant="ghost" onClick={handleArchive} disabled={pending}>

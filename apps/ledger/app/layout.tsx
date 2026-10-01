@@ -1,37 +1,20 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
-import { Archivo, Archivo_Narrow, Courier_Prime } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 
 /**
- * A form prints its labels and is written into. Archivo sets the prose,
- * Archivo Narrow the pre-printed labels, and Courier Prime every value that
- * was measured, counted or machine-assigned. The split is the type system,
- * not a texture — request titles are Archivo because a person wrote them,
- * request refs are Courier because the system assigned them.
+ * One face carries the whole console. Weight and size do the work three
+ * families used to: 800 for figures, 600–700 for headings and actions, 500
+ * for metadata, 400 for prose. Plus Jakarta Sans is geometric with slightly
+ * open counters, which keeps a 34px total legible and an 11px chip readable
+ * without a second family being brought in to rescue either.
  */
-const archivo = Archivo({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-archivo',
+  variable: '--font-jakarta',
   display: 'swap',
 });
-
-const archivoNarrow = Archivo_Narrow({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-archivo-narrow',
-  display: 'swap',
-});
-
-const courier = Courier_Prime({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-courier-prime',
-  display: 'swap',
-});
-
-const fontVars = `${archivo.variable} ${archivoNarrow.variable} ${courier.variable}`;
 
 export const metadata: Metadata = {
   title: 'Change Ledger',
@@ -41,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={fontVars}>
+    <html lang="en" className={jakarta.variable}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

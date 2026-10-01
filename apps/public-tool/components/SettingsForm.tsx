@@ -76,7 +76,7 @@ export function SettingsForm({ initial, onSave, onClearAll }: SettingsFormProps)
       </div>
       <div>
         <FieldLabel>Engagement</FieldLabel>
-        <div className="flex flex-wrap" role="group" aria-label="Engagement mode">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Engagement mode">
           <FilterChip pressed={mode === 'foundation'} onClick={() => setMode('foundation')}>
             Foundation Build — fixed scope
           </FilterChip>
@@ -118,7 +118,6 @@ export function SettingsForm({ initial, onSave, onClearAll }: SettingsFormProps)
           <Button
             type="button"
             variant="ghost"
-            small
             onClick={() => {
               if (window.confirm('Delete this ledger and every logged request from this browser? This cannot be undone.')) {
                 onClearAll();
@@ -129,7 +128,7 @@ export function SettingsForm({ initial, onSave, onClearAll }: SettingsFormProps)
           </Button>
         ) : null}
       </div>
-      <p className="font-sans text-pencil" style={{ fontSize: 13, lineHeight: 1.55 }}>
+      <p className="text-pencil text-body max-w-measure">
         Everything stays in this browser. The rate is shown only in the Growthmak view — the client sees the computed cost, not the working.
       </p>
     </form>
